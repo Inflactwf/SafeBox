@@ -1,0 +1,170 @@
+﻿using SafeBox.Commands;
+using SafeBox.Extensions;
+using SafeBox.Handlers;
+using SafeBox.Infrastructure;
+using SafeBox.Interfaces;
+using SafeBox.Models;
+using SafeBox.Security;
+using System;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Security;
+using System.Windows.Forms;
+
+namespace SafeBox.ViewModels
+{
+    public class ExportViewModel : ViewModelBase
+    {
+        #region Private Fields
+
+        private readonly ICryptographer<string> aesCryptographer;
+        private readonly ICryptographer<string> shaCryptographer;
+        private ICryptographer<SecureString> nativeCryptographer;
+        private IFileHandler fileHandler;
+        private ObservableCollection<StorageMember> _collection;
+
+        private string _location;
+        private string _password = string.Empty;
+        private string _repeatedPassword = string.Empty;
+        private bool _isContinueButtonEnabled;
+
+        #endregion
+
+        public ExportViewModel()
+        {
+            aesCryptographer = new AesCryptographer();
+            shaCryptographer = new SHACryptographer();
+        }
+
+        #region Binding Properties
+
+        public string Password
+        { 
+            get => _password;
+            set
+            {
+                Set(ref _password, value);
+                PerformFieldsCheck();
+            }
+        }
+
+        public string RepeatedPassword
+        {
+            get => _repeatedPassword;
+            set
+            {
+                Set(ref _repeatedPassword, value);
+                PerformFieldsCheck();
+            }
+        }
+
+        public string Location
+        {
+            get => _location;
+            set
+            {
+                Set(ref _location, value);
+                PerformFieldsCheck();
+            }
+        }
+
+        public bool IsContinueButtonEnabled { get => _isContinueButtonEnabled; private set => Set(ref _isContinueButtonEnabled, value); }
+
+        #endregion
+
+        #region Commands
+
+        public RelayCommand RunExportCommand => new(RunExport);
+        public RelayCommand SelectLocationCommand => new(SelectLocation);
+
+        #endregion
+
+        public void AttachExportableCollection(ObservableCollection<StorageMember> collection) =>
+            _collection = new(collection);
+
+        public void AttachNativeCryptographer(ICryptographer<SecureString> cryptographer) =>
+            nativeCryptographer = cryptographer;
+
+        private bool PerformFieldsCheck() =>
+            IsContinueButtonEnabled =
+                !_repeatedPassword.IsNullOrWhiteSpace() &&
+                !_password.IsNullOrWhiteSpace() &&
+                _password == _repeatedPassword &&
+                !_location.IsNullOrWhiteSpace();
+
+        private void RunExport()
+        {
+            if (!PerformFieldsCheck())
+            {
+                MessageBox.Show("One of the fields is not set or invalid. Fill all the required fields correctly and try again later.",
+                    "SafeBox Export", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                
+                return;
+            }
+
+            try
+            {
+                var passwordHash = shaCryptographer.Encrypt(Password);
+
+                ReEncryptExtractingCollection(passwordHash);
+
+                var encryptedData = aesCryptographer.Encrypt(_collection.JsonSerializeObject(), passwordHash);
+
+                fileHandler.Write(encryptedData);
+
+                MessageBox.Show(
+                    $"Accounts were successfully exported to the file '{fileHandler.FileName}'.",
+                    "SafeBox Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                if (MessageBox.Show(
+                    $"Unable to export accounts:\n\n{ex.Message}\n{ex.StackTrace}",
+                    "SafeBox Export", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) == DialogResult.Retry)
+                {
+                    RunExport();
+                }
+            }
+        }
+
+        private void ReEncryptExtractingCollection(string hash)
+        {
+            var unsafeCollection = new ObservableCollection<StorageMember>();
+
+            foreach (var member in _collection)
+            {
+                using var securePwd = nativeCryptographer.Decrypt(member.PasswordHash);
+
+                if (securePwd == null || securePwd.Length == 0)
+                {
+                    unsafeCollection.Add(member);
+                    continue;
+                }
+
+                var decryptedPassword = SecurityHelper.SecureStringToString(securePwd);
+                member.ReplacePasswordHash(aesCryptographer.Encrypt(decryptedPassword, hash));
+                SecurityHelper.DecomposeString(ref decryptedPassword);
+            }
+
+            if (unsafeCollection.Count > 0)
+                _collection = new(_collection.Except(unsafeCollection));
+            
+        }
+
+        private void SelectLocation()
+        {
+            var dialog = new FolderBrowserDialog()
+            {
+                SelectedPath = AppDomain.CurrentDomain.BaseDirectory,
+                ShowNewFolderButton = true,
+            };
+
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                Location = dialog.SelectedPath.Replace(Constants.Space, Constants.NonBreakingSpace);
+                fileHandler = new FileHandler(Path.Combine(Location, $"safebox_backup_{DateTime.Now:dd-MM-yyyy}.sbb"));
+            }
+        }
+    }
+}

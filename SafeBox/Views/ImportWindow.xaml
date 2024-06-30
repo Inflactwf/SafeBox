@@ -1,0 +1,143 @@
+﻿<Window x:Name="Window" x:Class="SafeBox.Views.ImportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:lb="clr-namespace:SafeBox.Behaviors"
+        xmlns:vm="clr-namespace:SafeBox.ViewModels"
+        mc:Ignorable="d"
+        Title="SafeBox Import" Height="351" Width="499"
+        AllowsTransparency="True"
+        WindowStyle="None"
+        DataContext="{DynamicResource ImportViewModel}"
+        ResizeMode="CanMinimize"
+        Background="{x:Null}"
+        Icon="/SafeIcon.ico"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <vm:ImportViewModel x:Key="ImportViewModel" />
+
+        <Storyboard x:Key="LoadingStoryboard">
+            <DoubleAnimation
+                Storyboard.TargetName="Window"
+                Storyboard.TargetProperty="Opacity"
+                From="0"
+                To="1"
+                Duration="0:0:0.150"/>
+        </Storyboard>
+
+        <Storyboard x:Key="ClosingStoryboard">
+            <DoubleAnimation
+                Storyboard.TargetName="Window"
+                Storyboard.TargetProperty="Opacity"
+                From="1"
+                To="0"
+                Duration="0:0:0.200"/>
+        </Storyboard>
+    </Window.Resources>
+    
+    <b:Interaction.Triggers>
+        <b:EventTrigger EventName="Loaded">
+            <b:ControlStoryboardAction Storyboard="{StaticResource LoadingStoryboard}" ControlStoryboardOption="Play" />
+        </b:EventTrigger>
+    </b:Interaction.Triggers>
+
+    <b:Interaction.Behaviors>
+        <lb:WindowClosingBehavior Storyboard="{StaticResource ClosingStoryboard}" />
+        <lb:BorderlessWindowDragBehavior />
+    </b:Interaction.Behaviors>
+
+    <Border Margin="5">
+        <Grid>
+            <StackPanel Margin="0,0,0,64" >
+                <TextBlock
+                    TextWrapping="Wrap"
+                    Text="Hello. Please, provide a location to your stored encrypted data backup file."
+                    FontFamily="Calibri" FontSize="14"
+                    Foreground="LightGray"
+                    Padding="30,0,30,0"
+                    Margin="0,30,0,20" Opacity="0.9"/>
+                <Button
+                    FocusVisualStyle="{x:Null}"
+                    Content="Select"
+                    Width="130" Height="23" FontSize="10">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="Click">
+                            <b:InvokeCommandAction Command="{Binding SelectLocationCommand}" />
+                        </b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Button>
+                <TextBox
+                    md:TextFieldAssist.HasLeadingIcon="True"
+                    md:TextFieldAssist.LeadingIcon="Folder"
+                    md:HintAssist.Hint="The location of the exported file..."
+                    TextWrapping="Wrap"
+                    Text="{Binding Location, UpdateSourceTrigger=PropertyChanged}"
+                    Foreground="White" MaxWidth="450" IsReadOnly="True" IsEnabled="False" HorizontalContentAlignment="Stretch" HorizontalAlignment="Center" Margin="0,10,0,0" MaxHeight="60"/>
+                <TextBlock
+                    TextWrapping="Wrap"
+                    Text="To make sure you are the owner of this backup, you must enter the password you set earlier in the export process."
+                    HorizontalAlignment="Center"
+                    FontFamily="Calibri" FontSize="14"
+                    Foreground="LightGray"
+                    Margin="0,30,0,0"
+                    Padding="30,0,30,0" Opacity="0.9" />
+                
+                <PasswordBox
+                    Style="{StaticResource MaterialDesignFloatingHintRevealPasswordBox}"
+                    md:TextFieldAssist.HasLeadingIcon="True"
+                    md:TextFieldAssist.LeadingIcon="FormTextboxPassword"
+                    md:HintAssist.Foreground="White"
+                    md:TextFieldAssist.HasClearButton="True"
+                    md:PasswordBoxAssist.Password="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
+                    md:HintAssist.Hint="Enter a password..."
+                    Width="220"
+                    Foreground="White"
+                    Margin="0,20,0,5"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,282,0,0" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                <Button
+                    FocusVisualStyle="{x:Null}"
+                    Content="Exit"
+                    Width="120" Height="30"
+                    Margin="0,0,10,15"
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="Click">
+                            <b:CallMethodAction
+                                MethodName="Close"
+                                TargetObject="{Binding ElementName=Window}" />
+                        </b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Button>
+
+                <Button
+                    FocusVisualStyle="{x:Null}"
+                    Content="Import"
+                    Margin="0,0,25,15"
+                    Width="120" Height="30"
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="Click">
+                            <b:InvokeCommandAction Command="{Binding RunImportCommand}" />
+                            <b:CallMethodAction
+                                TargetObject="{Binding ElementName=Window}"
+                                MethodName="Close" />
+                        </b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Button>
+            </StackPanel>
+            <Grid.Background>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#FF4A278A"/>
+                    <GradientStop Color="#FF241048" Offset="1"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Grid.Effect>
+                <DropShadowEffect Color="#FFBC9FFD" ShadowDepth="0" BlurRadius="15"/>
+            </Grid.Effect>
+        </Grid>
+    </Border>
+</Window>
