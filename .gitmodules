@@ -1,0 +1,3 @@
+[submodule "libs/ExtendedFileHandler"]
+	path = libs/ExtendedFileHandler
+	url = https://github.com/Inflactwf/ExtendedFileHandler.git

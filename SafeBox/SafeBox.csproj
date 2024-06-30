@@ -44,9 +44,9 @@
     <ApplicationIcon>SafeIcon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ExtendedFileHandler, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+    <Reference Include="ExtendedFileHandler, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\MarketBOT\ExtendedFileHandler\bin\Debug\ExtendedFileHandler.dll</HintPath>
+      <HintPath>..\..\ExtendedFileHandler\bin\Release\ExtendedFileHandler.dll</HintPath>
     </Reference>
     <Reference Include="MaterialDesignColors, Version=3.1.0.0, Culture=neutral, PublicKeyToken=df2a72020bd7962a, processorArchitecture=MSIL">
       <HintPath>..\packages\MaterialDesignColors.3.1.0\lib\net462\MaterialDesignColors.dll</HintPath>
