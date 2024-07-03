@@ -5,7 +5,6 @@ using SafeBox.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 
 namespace SafeBox.Handlers
 {
@@ -27,10 +26,8 @@ namespace SafeBox.Handlers
             storageWorker.OnError += StorageWorker_LogMessageReceived;
         }
 
-        private static void StorageWorker_LogMessageReceived(ErrorMessageEventArgs e)
-        {
+        private static void StorageWorker_LogMessageReceived(ErrorMessageEventArgs e) =>
             Logger.Error($"{Constants.StorageHandlerLogMark}: {e.Message}\n{e.StackTrace}");
-        }
 
         public static string GetStoragePath() => storageWorker.DbFileInfo.FullName;
 

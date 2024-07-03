@@ -5,7 +5,7 @@ VisualStudioVersion = 17.8.34525.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SafeBox", "SafeBox\SafeBox.csproj", "{75CCEA7F-3006-4084-88E6-AD4FB9A2C17A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtendedFileHandler", "..\ExtendedFileHandler\ExtendedFileHandler.csproj", "{F1B12206-F108-44C4-9520-99A268D8641A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtendedFileHandler", "libs\ExtendedFileHandler\ExtendedFileHandler.csproj", "{F1B12206-F108-44C4-9520-99A268D8641A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

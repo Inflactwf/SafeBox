@@ -232,7 +232,7 @@
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ExtendedFileHandler\ExtendedFileHandler.csproj">
+    <ProjectReference Include="..\libs\ExtendedFileHandler\ExtendedFileHandler.csproj">
       <Project>{f1b12206-f108-44c4-9520-99a268d8641a}</Project>
       <Name>ExtendedFileHandler</Name>
     </ProjectReference>
