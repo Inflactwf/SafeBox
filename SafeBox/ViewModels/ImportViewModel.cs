@@ -65,7 +65,7 @@ namespace SafeBox.ViewModels
 
                 if (decryptedData.IsNullOrWhiteSpace())
                 {
-                    ImportFinished?.Invoke(new(false, "The decrypted data is empty, nothing to import.", fileHandler.FileName, null));
+                    ImportFinished?.Invoke(new(false, Constants.DecryptedDataIsEmptyMessage, fileHandler.FileName, null));
                     return;
                 }
 
@@ -76,12 +76,16 @@ namespace SafeBox.ViewModels
             }
             catch (CryptographicException)
             {
+                Logger.Error($"{Constants.ImportLogMark}: An invalid password has been entered.");
+
                 MessageBox.Show(
-                    $"Unable to import accounts:\n\nAn invalid password has been entered.",
+                    "Unable to import accounts:\n\nAn invalid password has been entered.",
                     "SafeBox Export", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
+                Logger.Error($"{Constants.ImportLogMark}: {ex.Message}\n{ex.StackTrace}");
+
                 if (MessageBox.Show(
                     $"Unable to import accounts:\n\n{ex.Message}\n{ex.StackTrace}",
                     "SafeBox Export", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) == DialogResult.Retry)

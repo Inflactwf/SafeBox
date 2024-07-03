@@ -22,7 +22,7 @@ namespace SafeBox.ViewModels
         private readonly ICryptographer<string> shaCryptographer;
         private ICryptographer<SecureString> nativeCryptographer;
         private IFileHandler fileHandler;
-        private ObservableCollection<StorageMember> _collection;
+        private ObservableCollection<StorageMember> _collection = [];
 
         private string _location;
         private string _password = string.Empty;
@@ -40,7 +40,7 @@ namespace SafeBox.ViewModels
         #region Binding Properties
 
         public string Password
-        { 
+        {
             get => _password;
             set
             {
@@ -80,8 +80,13 @@ namespace SafeBox.ViewModels
 
         #endregion
 
-        public void AttachExportableCollection(ObservableCollection<StorageMember> collection) =>
-            _collection = new(collection);
+        public void AttachExportableCollection(ObservableCollection<StorageMember> collection)
+        {
+            _collection.Clear();
+
+            foreach (var member in collection)
+                _collection.Add(new(member.ResourceName, member.ServiceType, member.Login, member.PasswordHash));
+        }
 
         public void AttachNativeCryptographer(ICryptographer<SecureString> cryptographer) =>
             nativeCryptographer = cryptographer;
@@ -97,34 +102,30 @@ namespace SafeBox.ViewModels
         {
             if (!PerformFieldsCheck())
             {
-                MessageBox.Show("One of the fields is not set or invalid. Fill all the required fields correctly and try again later.",
-                    "SafeBox Export", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                
+                MessageBox.Show(Constants.FieldsValidationFailedMessage, "SafeBox Export", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
             try
             {
                 var passwordHash = shaCryptographer.Encrypt(Password);
-
                 ReEncryptExtractingCollection(passwordHash);
-
                 var encryptedData = aesCryptographer.Encrypt(_collection.JsonSerializeObject(), passwordHash);
-
                 fileHandler.Write(encryptedData);
 
-                MessageBox.Show(
-                    $"Accounts were successfully exported to the file '{fileHandler.FileName}'.",
-                    "SafeBox Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                var logMsg = $"Accounts were successfully exported to the file '{fileHandler.FileName}'.";
+
+                Logger.Info($"{Constants.ExportLogMark}: {logMsg}");
+                MessageBox.Show(logMsg, "SafeBox Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                if (MessageBox.Show(
-                    $"Unable to export accounts:\n\n{ex.Message}\n{ex.StackTrace}",
-                    "SafeBox Export", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) == DialogResult.Retry)
-                {
+                var logMsg = $"Unable to export accounts:\n\n{ex.Message}\n{ex.StackTrace}";
+
+                Logger.Error($"{Constants.ExportLogMark}: {logMsg}");
+
+                if (MessageBox.Show(logMsg, "SafeBox Export", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) == DialogResult.Retry)
                     RunExport();
-                }
             }
         }
 
@@ -149,7 +150,7 @@ namespace SafeBox.ViewModels
 
             if (unsafeCollection.Count > 0)
                 _collection = new(_collection.Except(unsafeCollection));
-            
+
         }
 
         private void SelectLocation()

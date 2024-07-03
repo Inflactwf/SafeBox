@@ -2,6 +2,7 @@
 using SafeBox.Enums;
 using SafeBox.EventArguments;
 using SafeBox.Extensions;
+using SafeBox.Infrastructure;
 using SafeBox.Interfaces;
 using SafeBox.Models;
 using SafeBox.Security;
@@ -85,9 +86,7 @@ namespace SafeBox.ViewModels
         {
             if (!PerformFieldsCheck())
             {
-                MessageBox.Show("One of the fields is not set or invalid. Fill all the required fields correctly and try again later.",
-                    "SafeBox", MessageBoxButton.OK, MessageBoxImage.Error);
-
+                MessageBox.Show(Constants.FieldsValidationFailedMessage, "SafeBox", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 

@@ -2,6 +2,7 @@
 using SafeBox.EventArguments;
 using SafeBox.Extensions;
 using SafeBox.Handlers;
+using SafeBox.Infrastructure;
 using SafeBox.Interfaces;
 using SafeBox.Models;
 using SafeBox.Security;
@@ -10,6 +11,7 @@ using SafeBox.Views;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using System.Security;
 using System.Threading.Tasks;
 using System.Windows;
@@ -23,7 +25,7 @@ namespace SafeBox.ViewModels
 
         private readonly ICryptographer<SecureString> dpapiCryptographer;
         private readonly IWindowService windowService;
-        
+
         private ObservableCollection<StorageMember> _backupStorageCollection = [];
         private ObservableCollection<StorageMember> _storageCollection = [];
         
@@ -43,7 +45,7 @@ namespace SafeBox.ViewModels
         #region Public Properties
 
         public StorageMember SelectedStorageItem { get => _selectedStorageItem; set => Set(ref _selectedStorageItem, value); }
-
+        public ObservableCollection<StorageMember> BackupStorageCollection { get => _backupStorageCollection; set => Set(ref _backupStorageCollection, value); }
         public ObservableCollection<StorageMember> StorageCollection { get => _storageCollection; set => Set(ref _storageCollection, value); }
 
         public string SearchCriteria
@@ -53,13 +55,13 @@ namespace SafeBox.ViewModels
             {
                 if (!value.IsNullOrWhiteSpace())
                 {
-                    StorageCollection = new(_backupStorageCollection.Where(x => x.Login
+                    StorageCollection = new(BackupStorageCollection.Where(x => x.Login
                         .ToLower()
                         .Contains(value.ToLower())));
                 }
                 else
                 {
-                    StorageCollection = new(_backupStorageCollection);
+                    StorageCollection = new(BackupStorageCollection);
                 }
 
                 Set(ref _searchCriteria, value);
@@ -72,7 +74,7 @@ namespace SafeBox.ViewModels
 
         public RelayCommand<string> CopyToClipboardCommand => new(CopyToClipboard);
         public RelayCommand<StorageMember> ShowPasswordCommand => new(async (member) => await ShowPassword(member));
-        public RelayCommand<StorageMember> RemoveCommand => new(RemoveMember);
+        public RelayCommand RemoveCommand => new(RemoveMember);
         public RelayCommand AddCommand => new(AddMember);
         public RelayCommand ShowImportCommand => new(RunImport);
         public RelayCommand ShowExportCommand => new(RunExport);
@@ -86,9 +88,9 @@ namespace SafeBox.ViewModels
             ImportStorage(entries);
         }
 
-        private void CopyToClipboard(string data)
+        private void CopyToClipboard(string passwordHash)
         {
-            using var secureString = dpapiCryptographer.Decrypt(data);
+            using var secureString = dpapiCryptographer.Decrypt(passwordHash);
             var insecureString = secureString == null
                 ? "UNKNOWN"
                 : SecurityHelper.SecureStringToString(secureString);
@@ -134,34 +136,39 @@ namespace SafeBox.ViewModels
             vm.CreatingFinished -= CreateMemberViewModel_CreatingFinished;
         }
 
-        private void RemoveMember(StorageMember member)
+        private void RemoveMember()
         {
+            // We should write to temporary variable because message box removes the focus from the selected item of listbox.
+            var storageMember = SelectedStorageItem; 
+
             if (MessageBox.Show(
-                $"Resource Name: {member.ResourceName}\n" +
-                $"Login: {member.Login}\n" +
-                $"Service Type: {member.ServiceType}\n\n" +
+                $"Resource Name: {storageMember.ResourceName}\n" +
+                $"Login: {storageMember.Login}\n" +
+                $"Service Type: {storageMember.ServiceType}\n\n" +
                 $"Are you sure you want to delete the record?",
                 "SafeBox Confirmation", MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.Cancel)
             {
                 return;
             }
 
-            StorageCollection.Remove(member);
-            _backupStorageCollection.Remove(member);
-            StorageHandler.DeleteEntry(member);
+            StorageCollection.Remove(storageMember);
+            BackupStorageCollection.Remove(storageMember);
+            StorageHandler.DeleteEntry(storageMember);
+
+            Logger.Info($"{Constants.RemoveLogMark}: Removed storage member '{storageMember.ResourceName}'.");
         }
 
         private void ImportStorage(IEnumerable<StorageMember> collection)
         {
             SearchCriteria = string.Empty;
             StorageCollection = new(collection);
-            _backupStorageCollection = new(collection);
+            BackupStorageCollection = new(collection);
         }
 
         private void ImportStorageMember(StorageMember member)
         {
             StorageCollection.Add(member);
-            _backupStorageCollection.Add(member);
+            BackupStorageCollection.Add(member);
         }
 
         private void RunImport()
@@ -177,24 +184,25 @@ namespace SafeBox.ViewModels
 
         private void RunExport()
         {
-            if (_backupStorageCollection.Count == 0)
+            if (BackupStorageCollection.Count == 0)
             {
-                MessageBox.Show("Nothing to export, the process is canceled.", "SafeBox Export", MessageBoxButton.OK, MessageBoxImage.Information);
+                Logger.Error($"{Constants.ExportLogMark}: {Constants.ExportEmptyStorageCollectionMessage}");
+                MessageBox.Show(Constants.ExportEmptyStorageCollectionMessage, "SafeBox Export", MessageBoxButton.OK, MessageBoxImage.Information);
 
                 return;
             }
 
             if (!IsCurrentMachineVerified())
             {
-                MessageBox.Show("The local machine is not verified, the export process is canceled.",
-                    "SafeBox Export", MessageBoxButton.OK, MessageBoxImage.Error);
+                Logger.Error($"{Constants.ExportLogMark}: {Constants.LocalMachineIsNotVerifiedMessage}");
+                MessageBox.Show(Constants.LocalMachineIsNotVerifiedMessage, "SafeBox Export", MessageBoxButton.OK, MessageBoxImage.Error);
 
                 return;
             }    
 
             var vm = new ExportViewModel();
 
-            vm.AttachExportableCollection(_backupStorageCollection);
+            vm.AttachExportableCollection(BackupStorageCollection);
             vm.AttachNativeCryptographer(dpapiCryptographer);
 
             windowService.ShowWindow<ExportWindow>(vm);
@@ -205,13 +213,14 @@ namespace SafeBox.ViewModels
             var vm = new SettingsViewModel();
             vm.SettingsChanged += SettingsViewModel_SettingsChanged;
             windowService.ShowWindow<SettingsWindow>(vm);
+            vm.SettingsChanged -= SettingsViewModel_SettingsChanged;
         }
 
         private bool IsCurrentMachineVerified()
         {
             try
             {
-                return _backupStorageCollection.All(x =>
+                return BackupStorageCollection.All(x =>
                 {
                     using var secPwd = dpapiCryptographer.Decrypt(x.PasswordHash);
                     return secPwd != null && secPwd.Length > 0;
@@ -230,13 +239,16 @@ namespace SafeBox.ViewModels
                 StorageHandler.OverwriteStorage(e.ImportedCollection);
                 ImportStorage(e.ImportedCollection);
 
+                Logger.Info($"{Constants.ImportLogMark}: " +
+                    $"{BackupStorageCollection.Count} storage members were successfully imported from the file '{e.FileName}'.");
+
                 MessageBox.Show($"Accounts were successfully imported from the file '{e.FileName}'.",
                     "SafeBox Export", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
             {
-                MessageBox.Show(e.Message,
-                    "SafeBox Export", MessageBoxButton.OK, MessageBoxImage.Error);
+                Logger.Error($"{Constants.ImportLogMark}: {e.Message}");
+                MessageBox.Show(e.Message, "SafeBox Export", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -247,11 +259,13 @@ namespace SafeBox.ViewModels
                 StorageHandler.AddEntry(e.StorageMember);
                 ImportStorageMember(e.StorageMember);
                 SelectedStorageItem = e.StorageMember;
+
+                Logger.Info($"{Constants.CreateLogMark}: Added a new storage member '{e.StorageMember.ResourceName}'.");
             }
             else
             {
-                MessageBox.Show("An exact element is already exists in the storage, the process is canceled.",
-                    "SafeBox", MessageBoxButton.OK, MessageBoxImage.Error);
+                Logger.Error($"{Constants.CreateLogMark}: {Constants.CreateExistingStorageMemberMessage}");
+                MessageBox.Show(Constants.CreateExistingStorageMemberMessage, "SafeBox", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -261,6 +275,8 @@ namespace SafeBox.ViewModels
             {
                 StorageHandler.Refresh();
                 LoadStorage();
+
+                Logger.Info($"{Constants.SettingsLogMark}: The storage path has been changed '{StorageHandler.GetStoragePath()}'");
             }
         }
     }

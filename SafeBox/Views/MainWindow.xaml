@@ -6,7 +6,6 @@
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:conv="clr-namespace:SafeBox.Converters"
-        xmlns:ta="clr-namespace:SafeBox.TriggerActions"
         xmlns:vm="clr-namespace:SafeBox.ViewModels"
         xmlns:lb="clr-namespace:SafeBox.Behaviors"
         mc:Ignorable="d"
@@ -20,36 +19,13 @@
     <Window.DataContext>
         <vm:MainWindowViewModel />
     </Window.DataContext>
+    
     <Window.Resources>
         <conv:ServiceTypeToImageConverter x:Key="ServiceTypeToImageConverter" />
-        <conv:SearchBoxHasTextConverter x:Key="SearchBoxHasTextConverter" />
+        <conv:EmptyToBooleanConverter x:Key="EmptyToBooleanConverter" />
+        <conv:NullToBooleanConverter x:Key="NullToBooleanConverter" />
+        <conv:ZeroCountToVisibilityConverter x:Key="ZeroCountToVisibilityConverter" />
         <lb:ListBoxAddingScrollBehavior x:Key="ListBoxAddingScrollBehavior" />
-
-        <ContextMenu x:Key="ListBoxItemContext" Background="#FF4A278A">
-            <MenuItem Header="Add" Foreground="White">
-                <MenuItem.Icon>
-                    <Image Source="/Resources/AddKey.png" />
-                </MenuItem.Icon>
-                <b:Interaction.Triggers>
-                    <b:EventTrigger EventName="Click">
-                        <b:InvokeCommandAction
-                            Command="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.AddCommand}" />
-                    </b:EventTrigger>
-                </b:Interaction.Triggers>
-            </MenuItem>
-            <MenuItem Header="Remove" Foreground="White">
-                <MenuItem.Icon>
-                    <Image Source="/Resources/RemoveKey.png" />
-                </MenuItem.Icon>
-                <b:Interaction.Triggers>
-                    <b:EventTrigger EventName="Click">
-                        <b:InvokeCommandAction
-                            Command="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.RemoveCommand}"
-                            CommandParameter="{Binding}" />
-                    </b:EventTrigger>
-                </b:Interaction.Triggers>
-            </MenuItem>
-        </ContextMenu>
     </Window.Resources>
 
     <Window.Background>
@@ -60,18 +36,54 @@
     </Window.Background>
     <Grid>
         <ListBox
+            x:Name="storageBox"
             Margin="60,10,10,10"
             Background="#7F150025"
             ItemsSource="{Binding StorageCollection, UpdateSourceTrigger=PropertyChanged}"
             SelectedItem="{Binding SelectedStorageItem, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
 
+            <ListBox.ContextMenu>
+                <ContextMenu
+                    FocusVisualStyle="{x:Null}"
+                    Background="#FF4A278A">
+                    <MenuItem
+                        FocusVisualStyle="{x:Null}"
+                        Header="Add"
+                        Foreground="White">
+                        <MenuItem.Icon>
+                            <Image Source="/Resources/AddKey.png" />
+                        </MenuItem.Icon>
+                        <b:Interaction.Triggers>
+                            <b:EventTrigger EventName="Click">
+                                <b:InvokeCommandAction
+                                    Command="{Binding AddCommand}" />
+                            </b:EventTrigger>
+                        </b:Interaction.Triggers>
+                    </MenuItem>
+                    <MenuItem
+                        FocusVisualStyle="{x:Null}"
+                        Header="Remove"
+                        Foreground="White"
+                        IsEnabled="{Binding SelectedStorageItem, Converter={StaticResource NullToBooleanConverter}}">
+                        <MenuItem.Icon>
+                            <Image Source="/Resources/RemoveKey.png" />
+                        </MenuItem.Icon>
+                        <b:Interaction.Triggers>
+                            <b:EventTrigger EventName="Click">
+                                <b:InvokeCommandAction
+                                    Command="{Binding RemoveCommand}" />
+                            </b:EventTrigger>
+                        </b:Interaction.Triggers>
+                    </MenuItem>
+                </ContextMenu>
+            </ListBox.ContextMenu>
+
             <b:Interaction.Behaviors>
                 <lb:ListBoxAddingScrollBehavior IsScrollingToEndEnabled="True" />
             </b:Interaction.Behaviors>
-            
+
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem" BasedOn="{StaticResource MaterialDesignListBoxItem}">
-                    <Setter Property="ContextMenu" Value="{StaticResource ListBoxItemContext}" />
                     <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                 </Style>
             </ListBox.ItemContainerStyle>
@@ -99,7 +111,7 @@
                                     <b:EventTrigger EventName="Click">
                                         <b:InvokeCommandAction
                                             Command="{Binding DataContext.CopyToClipboardCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
-                                            CommandParameter="{Binding Text, ElementName=pwdBlock}" />
+                                            CommandParameter="{Binding PasswordHash}" />
                                     </b:EventTrigger>
                                 </b:Interaction.Triggers>
                             </Button>
@@ -207,13 +219,7 @@
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="{x:Type ListBox}">
-                                <Grid x:Name="listBoxGrid">
-                                    <b:Interaction.Triggers>
-                                        <b:EventTrigger EventName="PreviewKeyDown">
-                                            <ta:SearchBoxFocusAction Target="{Binding ElementName=SearchBox}"
-                                                                     SearchTextProperty="{Binding SearchCriteria, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                        </b:EventTrigger>
-                                    </b:Interaction.Triggers>
+                                <Grid>
                                     <Border x:Name="Border" BorderThickness="2" CornerRadius="0" BorderBrush="#195B99B0" Background="#33000000">
                                         <ScrollViewer Margin="0" Focusable="false">
                                             <StackPanel Margin="2" IsItemsHost="True" />
@@ -227,6 +233,7 @@
                                         <TextBox
                                             x:Name="SearchBox"
                                             Text="{Binding SearchCriteria, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Visibility="{Binding BackupStorageCollection.Count, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource ZeroCountToVisibilityConverter}}"
                                             TextWrapping="NoWrap"
                                             VerticalContentAlignment="Center"
                                             BorderThickness="0,0,0,0"
@@ -246,8 +253,15 @@
                                             HorizontalContentAlignment="Stretch"
                                             Cursor="IBeam"
                                             Width="100" Height="32" VerticalAlignment="Bottom"
-                                            Opacity="0.2" HorizontalAlignment="Right" Margin="0,0,25,15"/>
+                                            Opacity="0.2" HorizontalAlignment="Right" Margin="0,0,25,15" />
                                     </StackPanel>
+
+                                    <b:Interaction.Behaviors>
+                                        <lb:SearchFocusBehavior 
+                                            Target="{Binding ElementName=SearchBox}"
+                                            RevertFocusTarget="{Binding RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                            SearchTextProperty="{Binding SearchCriteria, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </b:Interaction.Behaviors>
                                 </Grid>
 
                                 <ControlTemplate.Triggers>
@@ -276,10 +290,9 @@
                                         </Trigger.ExitActions>
                                     </Trigger>
 
-                                    <!-- DataTrigger for when SearchBox has no text and is not focused -->
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding SearchCriteria, Converter={StaticResource SearchBoxHasTextConverter}}" Value="False" />
+                                            <Condition Binding="{Binding SearchCriteria, Converter={StaticResource EmptyToBooleanConverter}}" Value="False" />
                                             <Condition Binding="{Binding IsFocused, ElementName=SearchBox}" Value="False" />
                                         </MultiDataTrigger.Conditions>
                                         <MultiDataTrigger.EnterActions>
@@ -301,10 +314,9 @@
                                         </MultiDataTrigger.ExitActions>
                                     </MultiDataTrigger>
 
-                                    <!-- Trigger for when SearchBox has text and is not focused -->
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding SearchCriteria, Converter={StaticResource SearchBoxHasTextConverter}}" Value="True" />
+                                            <Condition Binding="{Binding SearchCriteria, Converter={StaticResource EmptyToBooleanConverter}}" Value="True" />
                                             <Condition Binding="{Binding IsFocused, ElementName=SearchBox}" Value="False" />
                                         </MultiDataTrigger.Conditions>
                                         <Setter TargetName="SearchBox" Property="Width" Value="220" />

@@ -1,9 +1,11 @@
 ﻿using ExtendedFileHandler;
+using ExtendedFileHandler.EventArguments;
 using SafeBox.Infrastructure;
 using SafeBox.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace SafeBox.Handlers
 {
@@ -18,8 +20,19 @@ namespace SafeBox.Handlers
 
         public static void Refresh()
         {
+            if (storageWorker != null)
+                storageWorker.OnError -= StorageWorker_LogMessageReceived;
+
             storageWorker = new DbWorker<StorageMember>(new(StaticResources.StorageFullPath), CultureInfo.InvariantCulture);
+            storageWorker.OnError += StorageWorker_LogMessageReceived;
         }
+
+        private static void StorageWorker_LogMessageReceived(ErrorMessageEventArgs e)
+        {
+            Logger.Error($"{Constants.StorageHandlerLogMark}: {e.Message}\n{e.StackTrace}");
+        }
+
+        public static string GetStoragePath() => storageWorker.DbFileInfo.FullName;
 
         public static IEnumerable<StorageMember> GetEntries() => storageWorker.GetEntries();
 

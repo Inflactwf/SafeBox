@@ -44,10 +44,6 @@
     <ApplicationIcon>SafeIcon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ExtendedFileHandler, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\ExtendedFileHandler\bin\Release\ExtendedFileHandler.dll</HintPath>
-    </Reference>
     <Reference Include="MaterialDesignColors, Version=3.1.0.0, Culture=neutral, PublicKeyToken=df2a72020bd7962a, processorArchitecture=MSIL">
       <HintPath>..\packages\MaterialDesignColors.3.1.0\lib\net462\MaterialDesignColors.dll</HintPath>
     </Reference>
@@ -127,11 +123,14 @@
     </Compile>
     <Compile Include="Behaviors\BorderlessWindowDragBehavior.cs" />
     <Compile Include="Behaviors\ListBoxAddingScrollBehavior.cs" />
+    <Compile Include="Behaviors\SearchFocusBehavior.cs" />
     <Compile Include="Behaviors\WindowClosingBehavior.cs" />
     <Compile Include="Commands\GenericRelayCommand.cs" />
     <Compile Include="Commands\RelayCommand.cs" />
-    <Compile Include="Converters\SearchBoxHasTextConverter.cs" />
+    <Compile Include="Converters\NullToBooleanConverter.cs" />
+    <Compile Include="Converters\EmptyToBooleanConverter.cs" />
     <Compile Include="Converters\ServiceTypeToImageConverter.cs" />
+    <Compile Include="Converters\ZeroCountToVisibilityConverter.cs" />
     <Compile Include="Enums\ServiceType.cs" />
     <Compile Include="EventArguments\CreatingMemberFinishedEventArgs.cs" />
     <Compile Include="EventArguments\ImportFinishedEventArgs.cs" />
@@ -143,7 +142,9 @@
     <Compile Include="Handlers\FileHandler.cs" />
     <Compile Include="Handlers\StorageHandler.cs" />
     <Compile Include="Infrastructure\Constants.cs" />
+    <Compile Include="Infrastructure\Logger.cs" />
     <Compile Include="Infrastructure\StaticResources.cs" />
+    <Compile Include="Infrastructure\Utilities.cs" />
     <Compile Include="Interfaces\ICryptographer.cs" />
     <Compile Include="Interfaces\IWindowService.cs" />
     <Compile Include="Interfaces\IFileHandler.cs" />
@@ -154,7 +155,6 @@
     <Compile Include="Security\AesCryptographer.cs" />
     <Compile Include="Security\SHACryptographer.cs" />
     <Compile Include="Services\WindowService.cs" />
-    <Compile Include="TriggerActions\SearchBoxFocusAction.cs" />
     <Compile Include="ViewModels\CreateMemberViewModel.cs" />
     <Compile Include="ViewModels\ImportViewModel.cs" />
     <Compile Include="ViewModels\ExportViewModel.cs" />
@@ -227,6 +227,15 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="SafeIcon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\ExtendedFileHandler\ExtendedFileHandler.csproj">
+      <Project>{f1b12206-f108-44c4-9520-99a268d8641a}</Project>
+      <Name>ExtendedFileHandler</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\MaterialDesignThemes.5.0.0\build\MaterialDesignThemes.targets" Condition="Exists('..\packages\MaterialDesignThemes.5.0.0\build\MaterialDesignThemes.targets')" />

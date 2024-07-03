@@ -38,8 +38,12 @@ namespace SafeBox.Handlers
 
             using var reader = _fileInfo.OpenRead();
             using var sr = new StreamReader(reader);
+            var content = sr.ReadToEnd();
 
-            return sr.ReadToEnd();
+            sr.Close();
+            reader.Close();
+
+            return content;
         }
 
         public void Write(string text)
@@ -55,6 +59,7 @@ namespace SafeBox.Handlers
 
             sw.Write(text);
             sw.Close();
+            fs.Close();
         }
     }
 }
