@@ -22,7 +22,7 @@ namespace SafeBox.ViewModels
         private readonly ICryptographer<string> shaCryptographer;
         private ICryptographer<SecureString> nativeCryptographer;
         private IFileHandler fileHandler;
-        private ObservableCollection<StorageMember> _collection = [];
+        private ObservableCollection<StorageMember> collection = [];
 
         private string _location;
         private string _password = string.Empty;
@@ -82,10 +82,10 @@ namespace SafeBox.ViewModels
 
         public void AttachExportableCollection(ObservableCollection<StorageMember> collection)
         {
-            _collection.Clear();
+            this.collection.Clear();
 
             foreach (var member in collection)
-                _collection.Add(new(member.ResourceName, member.ServiceType, member.Login, member.PasswordHash));
+                this.collection.Add(member.Clone());
         }
 
         public void AttachNativeCryptographer(ICryptographer<SecureString> cryptographer) =>
@@ -110,7 +110,7 @@ namespace SafeBox.ViewModels
             {
                 var passwordHash = shaCryptographer.Encrypt(Password);
                 ReEncryptExtractingCollection(passwordHash);
-                var encryptedData = aesCryptographer.Encrypt(_collection.JsonSerializeObject(), passwordHash);
+                var encryptedData = aesCryptographer.Encrypt(collection.JsonSerializeObject(), passwordHash);
                 fileHandler.Write(encryptedData);
 
                 var logMsg = $"Accounts were successfully exported to the file '{fileHandler.FileName}'.";
@@ -133,7 +133,7 @@ namespace SafeBox.ViewModels
         {
             var unsafeCollection = new ObservableCollection<StorageMember>();
 
-            foreach (var member in _collection)
+            foreach (var member in collection)
             {
                 using var securePwd = nativeCryptographer.Decrypt(member.PasswordHash);
 
@@ -144,12 +144,12 @@ namespace SafeBox.ViewModels
                 }
 
                 var decryptedPassword = SecurityHelper.SecureStringToString(securePwd);
-                member.ReplacePasswordHash(aesCryptographer.Encrypt(decryptedPassword, hash));
+                member.PasswordHash = aesCryptographer.Encrypt(decryptedPassword, hash);
                 SecurityHelper.DecomposeString(ref decryptedPassword);
             }
 
             if (unsafeCollection.Count > 0)
-                _collection = new(_collection.Except(unsafeCollection));
+                collection = new(collection.Except(unsafeCollection));
 
         }
 

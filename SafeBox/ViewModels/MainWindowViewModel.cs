@@ -11,7 +11,6 @@ using SafeBox.Views;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reflection;
 using System.Security;
 using System.Threading.Tasks;
 using System.Windows;
@@ -76,6 +75,7 @@ namespace SafeBox.ViewModels
         public RelayCommand<StorageMember> ShowPasswordCommand => new(async (member) => await ShowPassword(member));
         public RelayCommand RemoveCommand => new(RemoveMember);
         public RelayCommand AddCommand => new(AddMember);
+        public RelayCommand EditCommand => new(EditMember);
         public RelayCommand ShowImportCommand => new(RunImport);
         public RelayCommand ShowExportCommand => new(RunExport);
         public RelayCommand ShowSettingsCommand => new(RunSettings);
@@ -136,6 +136,26 @@ namespace SafeBox.ViewModels
             vm.CreatingFinished -= CreateMemberViewModel_CreatingFinished;
         }
 
+        private void EditMember()
+        {
+            if (!IsCurrentMachineVerified())
+            {
+                Logger.Error($"{Constants.EditLogMark}: {Constants.LocalMachineIsNotVerifiedMessage}");
+                MessageBox.Show(Constants.LocalMachineIsNotVerifiedMessage, "SafeBox Export", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                return;
+            }
+
+            var vm = new EditMemberViewModel();
+            vm.AttachStorageMember(SelectedStorageItem);
+            vm.AttachNativeCryptographer(dpapiCryptographer);
+            vm.EditingFinished += EditMemberViewModel_EditingFinished;
+
+            windowService.ShowWindow<EditMemberWindow>(vm);
+
+            vm.EditingFinished -= EditMemberViewModel_EditingFinished;
+        }
+
         private void RemoveMember()
         {
             // We should write to temporary variable because message box removes the focus from the selected item of listbox.
@@ -163,6 +183,19 @@ namespace SafeBox.ViewModels
             SearchCriteria = string.Empty;
             StorageCollection = new(collection);
             BackupStorageCollection = new(collection);
+        }
+
+        private void ReplaceStorageMember(StorageMember oldMember, StorageMember newMember)
+        {
+            StorageHandler.ReplaceEntry(oldMember, newMember);
+
+            var viewOldMemberIndex = StorageCollection.IndexOf(oldMember);
+            if (viewOldMemberIndex >= 0)
+                StorageCollection[viewOldMemberIndex] = newMember;
+
+            var backupOldMemberIndex = BackupStorageCollection.IndexOf(oldMember);
+            if (backupOldMemberIndex >= 0)
+                BackupStorageCollection[backupOldMemberIndex] = newMember;
         }
 
         private void ImportStorageMember(StorageMember member)
@@ -266,6 +299,17 @@ namespace SafeBox.ViewModels
             {
                 Logger.Error($"{Constants.CreateLogMark}: {Constants.CreateExistingStorageMemberMessage}");
                 MessageBox.Show(Constants.CreateExistingStorageMemberMessage, "SafeBox", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void EditMemberViewModel_EditingFinished(EditingMemberFinishedEventArgs e)
+        {
+            if (e.HasChanges)
+            {
+                ReplaceStorageMember(e.SourceMember, e.EditedMember);
+
+                Logger.Error($"{Constants.EditLogMark}: The storage member '{e.SourceMember.ResourceName}' has been successfully edited.");
+                MessageBox.Show("The record has been succesfully edited.", "SafeBox", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 

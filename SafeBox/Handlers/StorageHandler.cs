@@ -2,9 +2,9 @@
 using ExtendedFileHandler.EventArguments;
 using SafeBox.Infrastructure;
 using SafeBox.Models;
-using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Windows;
 
 namespace SafeBox.Handlers
 {
@@ -26,20 +26,19 @@ namespace SafeBox.Handlers
             storageWorker.OnError += StorageWorker_LogMessageReceived;
         }
 
-        private static void StorageWorker_LogMessageReceived(ErrorMessageEventArgs e) =>
+        private static void StorageWorker_LogMessageReceived(ErrorMessageEventArgs e)
+        {
             Logger.Error($"{Constants.StorageHandlerLogMark}: {e.Message}\n{e.StackTrace}");
+            MessageBox.Show($"{e.Message}\nPlease, try again later.", "Extended File Handler", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
 
         public static string GetStoragePath() => storageWorker.DbFileInfo.FullName;
 
         public static IEnumerable<StorageMember> GetEntries() => storageWorker.GetEntries();
 
-        public static StorageMember GetEntry(string login) => storageWorker.GetEntry(x => x.Login == login);
-
-        public static void SaveEntry(StorageMember entry) => storageWorker.SaveEntry(entry);
-
         public static void AddEntry(StorageMember entry) => storageWorker.AddEntry(entry);
 
-        public static void EditEntry(StorageMember entry, Action<StorageMember> action) => storageWorker.EditEntry(entry, action);
+        public static void ReplaceEntry(StorageMember oldEntry, StorageMember newEntry) => storageWorker.ReplaceEntry(oldEntry, newEntry);
 
         public static void DeleteEntry(StorageMember entry) => storageWorker.DeleteEntry(entry);
 

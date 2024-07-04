@@ -9,14 +9,10 @@ namespace SafeBox.Converters
 {
     public class ServiceTypeToImageConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value == null)
-                return value;
-
-            return StaticResources.GetServiceImage((ServiceType)value);
-
-        }
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+            value != null
+            ? StaticResources.GetServiceImage((ServiceType)value)
+            : value;
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
             DependencyProperty.UnsetValue;

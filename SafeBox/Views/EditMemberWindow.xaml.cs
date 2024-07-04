@@ -3,11 +3,11 @@
 namespace SafeBox.Views
 {
     /// <summary>
-    /// Interaction logic for CreateMemberWindow.xaml
+    /// Interaction logic for EditMemberWindow.xaml
     /// </summary>
-    public partial class CreateMemberWindow : Window
+    public partial class EditMemberWindow : Window
     {
-        public CreateMemberWindow()
+        public EditMemberWindow()
         {
             InitializeComponent();
         }

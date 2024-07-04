@@ -100,7 +100,7 @@ namespace SafeBox.ViewModels
             foreach (var member in collection)
             {
                 var password = aesCryptographer.Decrypt(member.PasswordHash, hash);
-                member.ReplacePasswordHash(nativeCryptographer.Encrypt(password));
+                member.PasswordHash = nativeCryptographer.Encrypt(password);
                 SecurityHelper.DecomposeString(ref password);
             }
         }

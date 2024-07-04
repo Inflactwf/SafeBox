@@ -91,7 +91,7 @@
                     md:TextFieldAssist.LeadingIcon="FormTextboxPassword"
                     md:HintAssist.Foreground="White"
                     md:TextFieldAssist.HasClearButton="True"
-                    md:PasswordBoxAssist.Password="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
+                    md:PasswordBoxAssist.Password="{Binding Password, UpdateSourceTrigger=LostFocus}"
                     md:HintAssist.Hint="Enter a password..."
                     Width="220"
                     Foreground="White"

@@ -1,6 +1,8 @@
 ﻿using SafeBox.Enums;
 using SafeBox.Handlers;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Media.Imaging;
 
 namespace SafeBox.Infrastructure
@@ -8,6 +10,11 @@ namespace SafeBox.Infrastructure
     public static class StaticResources
     {
         public static string StorageFullPath => ConfigurationHandler.GetValue(Constants.StoragePathParameterName);
+
+        public static List<ServiceType> ServiceTypes =
+             Enum.GetValues(typeof(ServiceType))
+             .OfType<ServiceType>()
+             .ToList();
 
         public static BitmapImage GetServiceImage(ServiceType serviceType) =>
             serviceType switch

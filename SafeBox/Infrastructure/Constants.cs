@@ -11,6 +11,7 @@
         public const string RemoveLogMark = "REMOVE";
         public const string ImportLogMark = "IMPORT";
         public const string ExportLogMark = "EXPORT";
+        public const string EditLogMark = "EDIT";
         public const string DeleteLogMark = "DELETE";
         public const string SettingsLogMark = "SETTINGS";
         public const string StorageHandlerLogMark = "STORAGEHANDLER";

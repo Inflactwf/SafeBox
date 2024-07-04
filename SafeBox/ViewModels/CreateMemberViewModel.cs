@@ -6,9 +6,6 @@ using SafeBox.Infrastructure;
 using SafeBox.Interfaces;
 using SafeBox.Models;
 using SafeBox.Security;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security;
 using System.Windows;
 
@@ -61,11 +58,6 @@ namespace SafeBox.ViewModels
             }
         }
 
-        public List<ServiceType> ServiceTypes { get; set; } =
-            Enum.GetValues(typeof(ServiceType))
-            .OfType<ServiceType>()
-            .ToList();
-
         public bool IsContinueButtonEnabled { get => _isContinueButtonEnabled; private set => Set(ref _isContinueButtonEnabled, value); }
 
         #endregion
@@ -95,8 +87,10 @@ namespace SafeBox.ViewModels
 
         private StorageMember GetEncryptedStorageMember()
         {
-            var storageMember = new StorageMember(ResourceName, SelectedServiceType, Login, null);
-            storageMember.ReplacePasswordHash(nativeCryptographer.Encrypt(Password));
+            var storageMember = new StorageMember(ResourceName, SelectedServiceType, Login, null)
+            {
+                PasswordHash = nativeCryptographer.Encrypt(Password)
+            };
 
             SecurityHelper.DecomposeString(ref _password);
 

@@ -19,7 +19,7 @@
     <Window.DataContext>
         <vm:MainWindowViewModel />
     </Window.DataContext>
-    
+
     <Window.Resources>
         <conv:ServiceTypeToImageConverter x:Key="ServiceTypeToImageConverter" />
         <conv:EmptyToBooleanConverter x:Key="EmptyToBooleanConverter" />
@@ -62,6 +62,21 @@
                     </MenuItem>
                     <MenuItem
                         FocusVisualStyle="{x:Null}"
+                        Header="Edit"
+                        Foreground="White"
+                        IsEnabled="{Binding SelectedStorageItem, Converter={StaticResource NullToBooleanConverter}}">
+                        <MenuItem.Icon>
+                            <Image Source="/Resources/EditKey.png" />
+                        </MenuItem.Icon>
+                        <b:Interaction.Triggers>
+                            <b:EventTrigger EventName="Click">
+                                <b:InvokeCommandAction
+                                    Command="{Binding EditCommand}" />
+                            </b:EventTrigger>
+                        </b:Interaction.Triggers>
+                    </MenuItem>
+                    <MenuItem
+                        FocusVisualStyle="{x:Null}"
                         Header="Remove"
                         Foreground="White"
                         IsEnabled="{Binding SelectedStorageItem, Converter={StaticResource NullToBooleanConverter}}">
@@ -97,7 +112,8 @@
 
                             <TextBlock
                                 Text="{Binding ResourceName}"
-                                Foreground="White" FontSize="17"/>
+                                Foreground="White"
+                                FontSize="17" />
 
                             <Button
                                 x:Name="copyPwdBtn"
@@ -363,6 +379,7 @@
                         </BeginStoryboard>
                     </EventTrigger>
                 </StackPanel.Triggers>
+                
                 <StackPanel Orientation="Horizontal" Margin="0,15,0,0" HorizontalAlignment="Left">
                     <Button
                         md:RippleAssist.IsCentered="True"
@@ -381,6 +398,7 @@
                     <TextBlock
                         TextWrapping="Wrap" Text="IMPORT" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
                 </StackPanel>
+                
                 <StackPanel Orientation="Horizontal" Margin="0,15,0,0" HorizontalAlignment="Left">
                     <Button
                         md:RippleAssist.IsCentered="True"
@@ -399,6 +417,7 @@
                     <TextBlock
                         TextWrapping="Wrap" Text="EXPORT" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
                 </StackPanel>
+                
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,15,0,0">
                     <Button
                         md:RippleAssist.IsCentered="True"
@@ -414,9 +433,11 @@
                             </b:EventTrigger>
                         </b:Interaction.Triggers>
                     </Button>
+                    
                     <TextBlock
-                    TextWrapping="Wrap" Text="SETTINGS" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        TextWrapping="Wrap" Text="SETTINGS" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
                 </StackPanel>
+
                 <StackPanel Orientation="Horizontal" Margin="0,15,0,0" HorizontalAlignment="Left">
                     <Button
                         md:RippleAssist.IsCentered="True"
@@ -434,7 +455,7 @@
                         </b:Interaction.Triggers>
                     </Button>
                     <TextBlock
-                    TextWrapping="Wrap" Text="EXIT" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        TextWrapping="Wrap" Text="EXIT" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
                 </StackPanel>
             </StackPanel>
         </Border>
