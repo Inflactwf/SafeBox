@@ -11,13 +11,13 @@
         Title="SafeBox Settings" Height="351" Width="499"
         AllowsTransparency="True"
         WindowStyle="None"
-        DataContext="{DynamicResource ExportViewModel}"
+        DataContext="{DynamicResource SettingsViewModel}"
         ResizeMode="CanMinimize"
         Background="{x:Null}"
         Icon="/SafeIcon.ico"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
-        <vm:ExportViewModel x:Key="ExportViewModel" />
+        <vm:SettingsViewModel x:Key="SettingsViewModel" />
 
         <Storyboard x:Key="LoadingStoryboard">
             <DoubleAnimation

@@ -131,8 +131,9 @@
     <Compile Include="Behaviors\WindowClosingBehavior.cs" />
     <Compile Include="Commands\GenericRelayCommand.cs" />
     <Compile Include="Commands\RelayCommand.cs" />
+    <Compile Include="Converters\StringToBooleanMultiConverter.cs" />
     <Compile Include="Converters\NullToBooleanConverter.cs" />
-    <Compile Include="Converters\EmptyToBooleanConverter.cs" />
+    <Compile Include="Converters\StringToBooleanConverter.cs" />
     <Compile Include="Converters\ServiceTypeToImageConverter.cs" />
     <Compile Include="Converters\ZeroCountToVisibilityConverter.cs" />
     <Compile Include="Enums\ServiceType.cs" />

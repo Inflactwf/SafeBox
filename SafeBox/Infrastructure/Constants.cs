@@ -20,6 +20,6 @@
         public const string ExportEmptyStorageCollectionMessage = "Nothing to export, the process is canceled.";
         public const string CreateExistingStorageMemberMessage = "An exact element is already exists in the storage, the process is canceled.";
         public const string DecryptedDataIsEmptyMessage = "The decrypted data is empty, nothing to import.";
-        public const string FieldsValidationFailedMessage = "One of the fields is not set or invalid. Fill all the required fields correctly and try again later.";
+        public const string PasswordAndConfirmationAreNotEquals = "The password and repeat password do not match. Fill all the required fields correctly and try again.";
     }
 }

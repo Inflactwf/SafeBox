@@ -5,7 +5,7 @@ using System.Windows.Data;
 
 namespace SafeBox.Converters
 {
-    public class EmptyToBooleanConverter : IValueConverter
+    public class StringToBooleanConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
             !(value as string).IsNullOrWhiteSpace();

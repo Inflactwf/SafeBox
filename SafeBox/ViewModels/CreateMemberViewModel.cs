@@ -1,13 +1,10 @@
 ﻿using SafeBox.Commands;
 using SafeBox.Enums;
 using SafeBox.EventArguments;
-using SafeBox.Extensions;
-using SafeBox.Infrastructure;
 using SafeBox.Interfaces;
 using SafeBox.Models;
 using SafeBox.Security;
 using System.Security;
-using System.Windows;
 
 namespace SafeBox.ViewModels
 {
@@ -20,45 +17,15 @@ namespace SafeBox.ViewModels
         private ServiceType _selectedServiceType;
         private string _login;
         private string _password;
-        private bool _isContinueButtonEnabled;
 
         #endregion
 
         #region Binding Properties
 
-        public string ResourceName
-        {
-            get => _resourceName;
-            set
-            {
-                Set(ref _resourceName, value);
-                PerformFieldsCheck();
-            }
-        }
-
+        public string ResourceName { get => _resourceName; set => Set(ref _resourceName, value); }
         public ServiceType SelectedServiceType { get => _selectedServiceType; set => Set(ref _selectedServiceType, value); }
-
-        public string Login
-        {
-            get => _login;
-            set
-            {
-                Set(ref _login, value);
-                PerformFieldsCheck();
-            }
-        }
-
-        public string Password
-        {
-            get => _password;
-            set
-            {
-                Set(ref _password, value);
-                PerformFieldsCheck();
-            }
-        }
-
-        public bool IsContinueButtonEnabled { get => _isContinueButtonEnabled; private set => Set(ref _isContinueButtonEnabled, value); }
+        public string Login { get => _login; set => Set(ref _login, value); }
+        public string Password { get => _password; set => Set(ref _password, value); }
 
         #endregion
 
@@ -74,16 +41,8 @@ namespace SafeBox.ViewModels
         public void AttachNativeCryptographer(ICryptographer<SecureString> cryptographer) =>
             nativeCryptographer = cryptographer;
 
-        private void CreateMember()
-        {
-            if (!PerformFieldsCheck())
-            {
-                MessageBox.Show(Constants.FieldsValidationFailedMessage, "SafeBox", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
+        private void CreateMember() =>
             CreatingFinished?.Invoke(new(GetEncryptedStorageMember()));
-        }
 
         private StorageMember GetEncryptedStorageMember()
         {
@@ -96,11 +55,5 @@ namespace SafeBox.ViewModels
 
             return storageMember;
         }
-
-        private bool PerformFieldsCheck() =>
-            IsContinueButtonEnabled =
-                !_resourceName.IsNullOrWhiteSpace() &&
-                !_login.IsNullOrWhiteSpace() &&
-                !_password.IsNullOrWhiteSpace();
     }
 }

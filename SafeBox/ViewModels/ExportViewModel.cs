@@ -27,7 +27,6 @@ namespace SafeBox.ViewModels
         private string _location;
         private string _password = string.Empty;
         private string _repeatedPassword = string.Empty;
-        private bool _isContinueButtonEnabled;
 
         #endregion
 
@@ -39,37 +38,9 @@ namespace SafeBox.ViewModels
 
         #region Binding Properties
 
-        public string Password
-        {
-            get => _password;
-            set
-            {
-                Set(ref _password, value);
-                PerformFieldsCheck();
-            }
-        }
-
-        public string RepeatedPassword
-        {
-            get => _repeatedPassword;
-            set
-            {
-                Set(ref _repeatedPassword, value);
-                PerformFieldsCheck();
-            }
-        }
-
-        public string Location
-        {
-            get => _location;
-            set
-            {
-                Set(ref _location, value);
-                PerformFieldsCheck();
-            }
-        }
-
-        public bool IsContinueButtonEnabled { get => _isContinueButtonEnabled; private set => Set(ref _isContinueButtonEnabled, value); }
+        public string Password { get => _password; set => Set(ref _password, value); }
+        public string RepeatedPassword { get => _repeatedPassword; set => Set(ref _repeatedPassword, value); }
+        public string Location { get => _location; set => Set(ref _location, value); }
 
         #endregion
 
@@ -91,20 +62,21 @@ namespace SafeBox.ViewModels
         public void AttachNativeCryptographer(ICryptographer<SecureString> cryptographer) =>
             nativeCryptographer = cryptographer;
 
-        private bool PerformFieldsCheck() =>
-            IsContinueButtonEnabled =
-                !_repeatedPassword.IsNullOrWhiteSpace() &&
-                !_password.IsNullOrWhiteSpace() &&
-                _password == _repeatedPassword &&
-                !_location.IsNullOrWhiteSpace();
+        private bool PerformFieldsCheck()
+        {
+            if (_password != _repeatedPassword)
+            {
+                MessageBox.Show(Constants.PasswordAndConfirmationAreNotEquals, "SafeBox Export", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+
+            return true;
+        }
 
         private void RunExport()
         {
             if (!PerformFieldsCheck())
-            {
-                MessageBox.Show(Constants.FieldsValidationFailedMessage, "SafeBox Export", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
-            }
 
             try
             {

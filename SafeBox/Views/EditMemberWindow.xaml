@@ -21,7 +21,7 @@
     <Window.Resources>
         <vm:EditMemberViewModel x:Key="EditMemberViewModel" />
         <conv:ServiceTypeToImageConverter x:Key="ServiceTypeToImageConverter" />
-        <conv:EmptyToBooleanConverter x:Key="EmptyToBooleanConverter" />
+        <conv:StringToBooleanConverter x:Key="StringToBooleanConverter" />
 
         <Storyboard x:Key="LoadingStoryboard">
             <DoubleAnimation
@@ -151,7 +151,7 @@
                 <Button
                     FocusVisualStyle="{x:Null}"
                     Content="Save"
-                    IsEnabled="{Binding Member.ResourceName, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EmptyToBooleanConverter}}"
+                    IsEnabled="{Binding Member.ResourceName, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource StringToBooleanConverter}}"
                     Margin="0,0,25,15"
                     Width="120" Height="30"
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" FontFamily="Segoe UI">

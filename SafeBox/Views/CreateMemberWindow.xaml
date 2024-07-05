@@ -21,6 +21,7 @@
     <Window.Resources>
         <vm:CreateMemberViewModel x:Key="CreateMemberViewModel" />
         <conv:ServiceTypeToImageConverter x:Key="ServiceTypeToImageConverter" />
+        <conv:StringToBooleanMultiConverter x:Key="StringToBooleanMultiConverter" />
 
         <Storyboard x:Key="LoadingStoryboard">
             <DoubleAnimation
@@ -149,10 +150,16 @@
                 <Button
                     FocusVisualStyle="{x:Null}"
                     Content="Add"
-                    IsEnabled="{Binding IsContinueButtonEnabled, UpdateSourceTrigger=PropertyChanged}"
                     Margin="0,0,25,15"
                     Width="120" Height="30"
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" FontFamily="Segoe UI">
+                    <Button.IsEnabled>
+                        <MultiBinding Converter="{StaticResource StringToBooleanMultiConverter}">
+                            <Binding Path="ResourceName" />
+                            <Binding Path="Login" />
+                            <Binding Path="Password" />
+                        </MultiBinding>
+                    </Button.IsEnabled>
                     <b:Interaction.Triggers>
                         <b:EventTrigger EventName="Click">
                             <b:InvokeCommandAction Command="{Binding CreateCommand}" />

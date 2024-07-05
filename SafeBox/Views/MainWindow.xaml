@@ -22,7 +22,7 @@
 
     <Window.Resources>
         <conv:ServiceTypeToImageConverter x:Key="ServiceTypeToImageConverter" />
-        <conv:EmptyToBooleanConverter x:Key="EmptyToBooleanConverter" />
+        <conv:StringToBooleanConverter x:Key="StringToBooleanConverter" />
         <conv:NullToBooleanConverter x:Key="NullToBooleanConverter" />
         <conv:ZeroCountToVisibilityConverter x:Key="ZeroCountToVisibilityConverter" />
         <lb:ListBoxAddingScrollBehavior x:Key="ListBoxAddingScrollBehavior" />
@@ -308,7 +308,7 @@
 
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding SearchCriteria, Converter={StaticResource EmptyToBooleanConverter}}" Value="False" />
+                                            <Condition Binding="{Binding SearchCriteria, Converter={StaticResource StringToBooleanConverter}}" Value="False" />
                                             <Condition Binding="{Binding IsFocused, ElementName=SearchBox}" Value="False" />
                                         </MultiDataTrigger.Conditions>
                                         <MultiDataTrigger.EnterActions>
@@ -332,7 +332,7 @@
 
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding SearchCriteria, Converter={StaticResource EmptyToBooleanConverter}}" Value="True" />
+                                            <Condition Binding="{Binding SearchCriteria, Converter={StaticResource StringToBooleanConverter}}" Value="True" />
                                             <Condition Binding="{Binding IsFocused, ElementName=SearchBox}" Value="False" />
                                         </MultiDataTrigger.Conditions>
                                         <Setter TargetName="SearchBox" Property="Width" Value="220" />
