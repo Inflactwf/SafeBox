@@ -15,11 +15,11 @@ namespace SafeBox.Infrastructure
                 Name = "SafeBox",
                 FileName = "SafeBox.log",
                 MaxArchiveFiles = 30,
+                MaxArchiveDays = 30,
                 ArchiveNumbering = ArchiveNumberingMode.Date,
                 ArchiveFileName = @"Logs\SafeBox_{#}.log",
                 ArchiveDateFormat = "dd-MM-yyyy",
                 ArchiveEvery = FileArchivePeriod.Day,
-                MaxArchiveDays = 1,
                 AutoFlush = true,
                 KeepFileOpen = true
             };
