@@ -1,11 +1,10 @@
-﻿using Newtonsoft.Json;
-using SafeBox.Enums;
+﻿using SafeBox.Enums;
+using SafeBox.Interfaces;
 using SafeBox.ViewModels;
-using System;
 
 namespace SafeBox.Models
 {
-    public class StorageMember(string resourceName, ServiceType serviceType, string login, string passwordHash) : ViewModelBase, IComparable
+    public class StorageMember(string resourceName, ServiceType serviceType, string login, string passwordHash) : ViewModelBase, IStorageMember
     {
         #region Private Fields
 
@@ -22,24 +21,20 @@ namespace SafeBox.Models
         public ServiceType ServiceType { get => _serviceType; set => Set(ref _serviceType, value); }
         public string Login { get => _login; set => Set(ref _login, value); }
         public string PasswordHash { get => _passwordHash; set => Set(ref _passwordHash, value); }
-
-        [JsonIgnore]
         public bool IsPasswordVisible { get => _isPasswordVisible; set => Set(ref _isPasswordVisible, value); }
-
-        [JsonIgnore]
         public string DisplayInsecurePassword { get => _displayInsecurePassword; set => Set(ref _displayInsecurePassword, value); }
 
-        public StorageMember Clone() =>
-            new(ResourceName, ServiceType, Login, PasswordHash);
+        public IStorageMember Clone() =>
+            new StorageMember(ResourceName, ServiceType, Login, PasswordHash);
 
-        public int CompareTo(object obj)
+        public int CompareTo(IStorageMember other)
         {
-            if (obj is StorageMember sm)
+            if (other != null)
             {
-                if (sm.ResourceName == ResourceName &&
-                    sm.ServiceType == ServiceType &&
-                    sm.Login == Login &&
-                    sm.PasswordHash == PasswordHash)
+                if (other.ResourceName == ResourceName &&
+                    other.ServiceType == ServiceType &&
+                    other.Login == Login &&
+                    other.PasswordHash == PasswordHash)
                 {
                     return 0;
                 }

@@ -22,7 +22,7 @@ namespace SafeBox.ViewModels
         private readonly ICryptographer<string> shaCryptographer;
         private ICryptographer<SecureString> nativeCryptographer;
         private IFileHandler fileHandler;
-        private ObservableCollection<StorageMember> collection = [];
+        private ObservableCollection<IStorageMember> collection = [];
 
         private string _location;
         private string _password = string.Empty;
@@ -51,7 +51,7 @@ namespace SafeBox.ViewModels
 
         #endregion
 
-        public void AttachExportableCollection(ObservableCollection<StorageMember> collection)
+        public void AttachExportableCollection(ObservableCollection<IStorageMember> collection)
         {
             this.collection.Clear();
 
@@ -103,7 +103,7 @@ namespace SafeBox.ViewModels
 
         private void ReEncryptExtractingCollection(string hash)
         {
-            var unsafeCollection = new ObservableCollection<StorageMember>();
+            var unsafeCollection = new ObservableCollection<IStorageMember>();
 
             foreach (var member in collection)
             {
@@ -116,13 +116,12 @@ namespace SafeBox.ViewModels
                 }
 
                 var decryptedPassword = SecurityHelper.SecureStringToString(securePwd);
-                member.PasswordHash = aesCryptographer.Encrypt(decryptedPassword, hash);
+                ((StorageMember)member).PasswordHash = aesCryptographer.Encrypt(decryptedPassword, hash);
                 SecurityHelper.DecomposeString(ref decryptedPassword);
             }
 
             if (unsafeCollection.Count > 0)
                 collection = new(collection.Except(unsafeCollection));
-
         }
 
         private void SelectLocation()

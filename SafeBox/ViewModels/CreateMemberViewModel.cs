@@ -44,7 +44,7 @@ namespace SafeBox.ViewModels
         private void CreateMember() =>
             CreatingFinished?.Invoke(new(GetEncryptedStorageMember()));
 
-        private StorageMember GetEncryptedStorageMember()
+        private IStorageMember GetEncryptedStorageMember()
         {
             var storageMember = new StorageMember(ResourceName, SelectedServiceType, Login, null)
             {

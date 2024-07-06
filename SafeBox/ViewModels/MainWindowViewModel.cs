@@ -4,7 +4,6 @@ using SafeBox.Extensions;
 using SafeBox.Handlers;
 using SafeBox.Infrastructure;
 using SafeBox.Interfaces;
-using SafeBox.Models;
 using SafeBox.Security;
 using SafeBox.Services;
 using SafeBox.Views;
@@ -25,11 +24,11 @@ namespace SafeBox.ViewModels
         private readonly ICryptographer<SecureString> dpapiCryptographer;
         private readonly IWindowService windowService;
 
-        private ObservableCollection<StorageMember> _backupStorageCollection = [];
-        private ObservableCollection<StorageMember> _storageCollection = [];
+        private ObservableCollection<IStorageMember> _backupStorageCollection = [];
+        private ObservableCollection<IStorageMember> _storageCollection = [];
         
         private string _searchCriteria = string.Empty;
-        private StorageMember _selectedStorageItem;
+        private IStorageMember _selectedStorageItem;
 
         #endregion
 
@@ -43,9 +42,9 @@ namespace SafeBox.ViewModels
 
         #region Public Properties
 
-        public StorageMember SelectedStorageItem { get => _selectedStorageItem; set => Set(ref _selectedStorageItem, value); }
-        public ObservableCollection<StorageMember> BackupStorageCollection { get => _backupStorageCollection; set => Set(ref _backupStorageCollection, value); }
-        public ObservableCollection<StorageMember> StorageCollection { get => _storageCollection; set => Set(ref _storageCollection, value); }
+        public IStorageMember SelectedStorageItem { get => _selectedStorageItem; set => Set(ref _selectedStorageItem, value); }
+        public ObservableCollection<IStorageMember> BackupStorageCollection { get => _backupStorageCollection; set => Set(ref _backupStorageCollection, value); }
+        public ObservableCollection<IStorageMember> StorageCollection { get => _storageCollection; set => Set(ref _storageCollection, value); }
 
         public string SearchCriteria
         {
@@ -72,7 +71,7 @@ namespace SafeBox.ViewModels
         #region Commands
 
         public RelayCommand<string> CopyToClipboardCommand => new(CopyToClipboard);
-        public RelayCommand<StorageMember> ShowPasswordCommand => new(async (member) => await ShowPassword(member));
+        public RelayCommand<IStorageMember> ShowPasswordCommand => new(async (member) => await ShowPassword(member));
         public RelayCommand RemoveCommand => new(RemoveMember);
         public RelayCommand AddCommand => new(AddMember);
         public RelayCommand EditCommand => new(EditMember);
@@ -105,7 +104,7 @@ namespace SafeBox.ViewModels
             }
         }
 
-        private async Task ShowPassword(StorageMember member)
+        private async Task ShowPassword(IStorageMember member)
         {
             using var secureString = dpapiCryptographer.Decrypt(member.PasswordHash);
             var insecureString = secureString == null 
@@ -178,14 +177,14 @@ namespace SafeBox.ViewModels
             Logger.Info($"{Constants.RemoveLogMark}: Removed storage member '{storageMember.ResourceName}'.");
         }
 
-        private void ImportStorage(IEnumerable<StorageMember> collection)
+        private void ImportStorage(IEnumerable<IStorageMember> collection)
         {
             SearchCriteria = string.Empty;
             StorageCollection = new(collection);
             BackupStorageCollection = new(collection);
         }
 
-        private void ReplaceStorageMember(StorageMember oldMember, StorageMember newMember)
+        private void ReplaceStorageMember(IStorageMember oldMember, IStorageMember newMember)
         {
             StorageHandler.ReplaceEntry(oldMember, newMember);
 
@@ -198,7 +197,7 @@ namespace SafeBox.ViewModels
                 BackupStorageCollection[backupOldMemberIndex] = newMember;
         }
 
-        private void ImportStorageMember(StorageMember member)
+        private void ImportStorageMember(IStorageMember member)
         {
             StorageCollection.Add(member);
             BackupStorageCollection.Add(member);

@@ -1,6 +1,7 @@
 ﻿using ExtendedFileHandler;
 using ExtendedFileHandler.EventArguments;
 using SafeBox.Infrastructure;
+using SafeBox.Interfaces;
 using SafeBox.Models;
 using System.Collections.Generic;
 using System.Globalization;
@@ -32,18 +33,25 @@ namespace SafeBox.Handlers
             MessageBox.Show($"{e.Message}\nPlease, try again later.", "Extended File Handler", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-        public static string GetStoragePath() => storageWorker.DbFileInfo.FullName;
+        public static string GetStoragePath() =>
+            storageWorker.DbFileInfo.FullName;
 
-        public static IEnumerable<StorageMember> GetEntries() => storageWorker.GetEntries();
+        public static IEnumerable<IStorageMember> GetEntries() =>
+            storageWorker.GetEntries();
 
-        public static void AddEntry(StorageMember entry) => storageWorker.AddEntry(entry);
+        public static void AddEntry(IStorageMember entry) =>
+            storageWorker.AddEntry((StorageMember)entry);
 
-        public static void ReplaceEntry(StorageMember oldEntry, StorageMember newEntry) => storageWorker.ReplaceEntry(oldEntry, newEntry);
+        public static void ReplaceEntry(IStorageMember oldEntry, IStorageMember newEntry) =>
+            storageWorker.ReplaceEntry((StorageMember)oldEntry, (StorageMember)newEntry);
 
-        public static void DeleteEntry(StorageMember entry) => storageWorker.DeleteEntry(entry);
+        public static void DeleteEntry(IStorageMember entry) =>
+            storageWorker.DeleteEntry((StorageMember)entry);
 
-        public static void OverwriteStorage(IEnumerable<StorageMember> collection) => storageWorker.ReplaceAll(collection);
+        public static void OverwriteStorage(IEnumerable<IStorageMember> collection) =>
+            storageWorker.ReplaceAll((IEnumerable<StorageMember>)collection);
 
-        public static bool IsEntryExists(StorageMember entry) => storageWorker.IsEntryExists(entry);
+        public static bool IsEntryExists(IStorageMember entry) =>
+            storageWorker.IsEntryExists((StorageMember)entry);
     }
 }

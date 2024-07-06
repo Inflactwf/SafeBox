@@ -153,6 +153,7 @@
     <Compile Include="Infrastructure\StaticResources.cs" />
     <Compile Include="Infrastructure\Utilities.cs" />
     <Compile Include="Interfaces\ICryptographer.cs" />
+    <Compile Include="Interfaces\IStorageMember.cs" />
     <Compile Include="Interfaces\IWindowService.cs" />
     <Compile Include="Interfaces\IFileHandler.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

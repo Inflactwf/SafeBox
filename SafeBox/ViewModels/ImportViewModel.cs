@@ -8,7 +8,6 @@ using SafeBox.Models;
 using SafeBox.Security;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Security;
 using System.Security.Cryptography;
 using System.Windows.Forms;
@@ -69,7 +68,7 @@ namespace SafeBox.ViewModels
                     return;
                 }
 
-                var decryptedCollection = decryptedData.JsonDeserializeObject<ObservableCollection<StorageMember>>();
+                var decryptedCollection = decryptedData.JsonDeserializeObject<IEnumerable<StorageMember>>();
 
                 ReEncryptExtractingCollection(decryptedCollection, encryptedPwd);
                 ImportFinished?.Invoke(new(true, null, fileHandler.FileName, decryptedCollection));
@@ -95,12 +94,12 @@ namespace SafeBox.ViewModels
             }
         }
 
-        private void ReEncryptExtractingCollection(IEnumerable<StorageMember> collection, string hash)
+        private void ReEncryptExtractingCollection(IEnumerable<IStorageMember> collection, string hash)
         {
             foreach (var member in collection)
             {
                 var password = aesCryptographer.Decrypt(member.PasswordHash, hash);
-                member.PasswordHash = nativeCryptographer.Encrypt(password);
+                ((StorageMember)member).PasswordHash = nativeCryptographer.Encrypt(password);
                 SecurityHelper.DecomposeString(ref password);
             }
         }

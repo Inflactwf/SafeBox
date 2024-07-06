@@ -13,15 +13,15 @@ namespace SafeBox.ViewModels
         #region Private Fields
 
         private ICryptographer<SecureString> nativeCryptographer;
-        private StorageMember _member;
-        private StorageMember _originalMember;
+        private IStorageMember _member;
+        private IStorageMember _originalMember;
         private string _newPassword;
 
         #endregion
 
         #region Public Properties
 
-        public StorageMember Member => _member;
+        public IStorageMember Member => _member;
 
         public string NewPassword { get => _newPassword; set => Set(ref _newPassword, value); }
 
@@ -40,7 +40,7 @@ namespace SafeBox.ViewModels
         {
             if (!NewPassword.IsNullOrWhiteSpace())
             {
-                Member.PasswordHash = nativeCryptographer.Encrypt(NewPassword);
+                ((StorageMember)Member).PasswordHash = nativeCryptographer.Encrypt(NewPassword);
                 SecurityHelper.DecomposeString(ref _newPassword);
             }
 
@@ -53,7 +53,7 @@ namespace SafeBox.ViewModels
         public void AttachNativeCryptographer(ICryptographer<SecureString> cryptographer) =>
             nativeCryptographer = cryptographer;
 
-        public void AttachStorageMember(StorageMember storageMember)
+        public void AttachStorageMember(IStorageMember storageMember)
         {
             _originalMember = storageMember;
             _member = storageMember.Clone();
