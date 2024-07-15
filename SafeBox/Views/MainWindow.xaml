@@ -8,6 +8,7 @@
         xmlns:conv="clr-namespace:SafeBox.Converters"
         xmlns:vm="clr-namespace:SafeBox.ViewModels"
         xmlns:lb="clr-namespace:SafeBox.Behaviors"
+        xmlns:gong="urn:gong-wpf-dragdrop"
         mc:Ignorable="d"
         
         x:Name="Window"
@@ -36,11 +37,18 @@
     </Window.Background>
     <Grid>
         <ListBox
-            x:Name="storageBox"
             Margin="60,10,10,10"
             Background="#7F150025"
-            ItemsSource="{Binding StorageCollection, UpdateSourceTrigger=PropertyChanged}"
-            SelectedItem="{Binding SelectedStorageItem, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+            gong:DragDrop.IsDragSource="True"
+            gong:DragDrop.IsDropTarget="True"
+            gong:DragDrop.UseDefaultDragAdorner="True"
+            gong:DragDrop.DropHandler="{Binding}"
+            ItemsSource="{Binding SynchronizationService.ViewCollection, UpdateSourceTrigger=PropertyChanged}"
+            SelectedItem="{Binding SynchronizationService.SelectedItem, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+
+            <b:Interaction.Behaviors>
+                <lb:ListBoxAddingScrollBehavior IsScrollingToEndEnabled="True" />
+            </b:Interaction.Behaviors>
 
             <ListBox.ContextMenu>
                 <ContextMenu
@@ -64,7 +72,7 @@
                         FocusVisualStyle="{x:Null}"
                         Header="Edit"
                         Foreground="White"
-                        IsEnabled="{Binding SelectedStorageItem, Converter={StaticResource NullToBooleanConverter}}">
+                        IsEnabled="{Binding SynchronizationService.SelectedItem, Converter={StaticResource NullToBooleanConverter}}">
                         <MenuItem.Icon>
                             <Image Source="/Resources/EditKey.png" />
                         </MenuItem.Icon>
@@ -79,7 +87,7 @@
                         FocusVisualStyle="{x:Null}"
                         Header="Remove"
                         Foreground="White"
-                        IsEnabled="{Binding SelectedStorageItem, Converter={StaticResource NullToBooleanConverter}}">
+                        IsEnabled="{Binding SynchronizationService.SelectedItem, Converter={StaticResource NullToBooleanConverter}}">
                         <MenuItem.Icon>
                             <Image Source="/Resources/RemoveKey.png" />
                         </MenuItem.Icon>
@@ -92,10 +100,6 @@
                     </MenuItem>
                 </ContextMenu>
             </ListBox.ContextMenu>
-
-            <b:Interaction.Behaviors>
-                <lb:ListBoxAddingScrollBehavior IsScrollingToEndEnabled="True" />
-            </b:Interaction.Behaviors>
 
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem" BasedOn="{StaticResource MaterialDesignListBoxItem}">
@@ -249,7 +253,7 @@
                                         <TextBox
                                             x:Name="SearchBox"
                                             Text="{Binding SearchCriteria, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                            Visibility="{Binding BackupStorageCollection.Count, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource ZeroCountToVisibilityConverter}}"
+                                            Visibility="{Binding SynchronizationService.Count, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource ZeroCountToVisibilityConverter}}"
                                             TextWrapping="NoWrap"
                                             VerticalContentAlignment="Center"
                                             BorderThickness="0,0,0,0"

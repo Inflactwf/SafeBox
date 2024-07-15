@@ -1,34 +1,27 @@
-﻿using SafeBox.Commands;
+﻿using GongSolutions.Wpf.DragDrop;
+using SafeBox.Commands;
 using SafeBox.EventArguments;
-using SafeBox.Extensions;
 using SafeBox.Handlers;
 using SafeBox.Infrastructure;
 using SafeBox.Interfaces;
+using SafeBox.Models;
 using SafeBox.Security;
 using SafeBox.Services;
 using SafeBox.Views;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security;
 using System.Threading.Tasks;
 using System.Windows;
-using Constants = SafeBox.Infrastructure.Constants;
 
 namespace SafeBox.ViewModels
 {
-    public class MainWindowViewModel : ViewModelBase
+    public class MainWindowViewModel : ViewModelBase, IDropTarget
     {
         #region Private Fields
 
         private readonly ICryptographer<SecureString> dpapiCryptographer;
         private readonly IWindowService windowService;
-
-        private ObservableCollection<IStorageMember> _backupStorageCollection = [];
-        private ObservableCollection<IStorageMember> _storageCollection = [];
-        
-        private string _searchCriteria = string.Empty;
-        private IStorageMember _selectedStorageItem;
 
         #endregion
 
@@ -36,35 +29,14 @@ namespace SafeBox.ViewModels
         {
             dpapiCryptographer = new DPAPICryptographer();
             windowService = new WindowService();
+            SynchronizationService = new();
 
             LoadStorage();
         }
 
         #region Public Properties
 
-        public IStorageMember SelectedStorageItem { get => _selectedStorageItem; set => Set(ref _selectedStorageItem, value); }
-        public ObservableCollection<IStorageMember> BackupStorageCollection { get => _backupStorageCollection; set => Set(ref _backupStorageCollection, value); }
-        public ObservableCollection<IStorageMember> StorageCollection { get => _storageCollection; set => Set(ref _storageCollection, value); }
-
-        public string SearchCriteria
-        {
-            get => _searchCriteria;
-            set
-            {
-                if (!value.IsNullOrWhiteSpace())
-                {
-                    StorageCollection = new(BackupStorageCollection.Where(x => x.Login
-                        .ToLower()
-                        .Contains(value.ToLower())));
-                }
-                else
-                {
-                    StorageCollection = new(BackupStorageCollection);
-                }
-
-                Set(ref _searchCriteria, value);
-            }
-        }
+        public ViewSynchronizationService<IStorageMember> SynchronizationService { get; }
 
         #endregion
 
@@ -107,7 +79,7 @@ namespace SafeBox.ViewModels
         private async Task ShowPassword(IStorageMember member)
         {
             using var secureString = dpapiCryptographer.Decrypt(member.PasswordHash);
-            var insecureString = secureString == null 
+            var insecureString = secureString == null
                 ? "UNKNOWN"
                 : SecurityHelper.SecureStringToString(secureString);
 
@@ -146,7 +118,7 @@ namespace SafeBox.ViewModels
             }
 
             var vm = new EditMemberViewModel();
-            vm.AttachStorageMember(SelectedStorageItem);
+            vm.AttachStorageMember(SynchronizationService.SelectedItem);
             vm.AttachNativeCryptographer(dpapiCryptographer);
             vm.EditingFinished += EditMemberViewModel_EditingFinished;
 
@@ -158,7 +130,7 @@ namespace SafeBox.ViewModels
         private void RemoveMember()
         {
             // We should write to temporary variable because message box removes the focus from the selected item of listbox.
-            var storageMember = SelectedStorageItem; 
+            var storageMember = SynchronizationService.SelectedItem;
 
             if (MessageBox.Show(
                 $"Resource Name: {storageMember.ResourceName}\n" +
@@ -170,8 +142,7 @@ namespace SafeBox.ViewModels
                 return;
             }
 
-            StorageCollection.Remove(storageMember);
-            BackupStorageCollection.Remove(storageMember);
+            SynchronizationService.Remove(storageMember);
             StorageHandler.DeleteEntry(storageMember);
 
             Logger.Info($"{Constants.RemoveLogMark}: Removed storage member '{storageMember.ResourceName}'.");
@@ -179,29 +150,18 @@ namespace SafeBox.ViewModels
 
         private void ImportStorage(IEnumerable<IStorageMember> collection)
         {
-            SearchCriteria = string.Empty;
-            StorageCollection = new(collection);
-            BackupStorageCollection = new(collection);
+            SynchronizationService.SearchCriteria = string.Empty;
+            SynchronizationService.Set(collection);
         }
 
         private void ReplaceStorageMember(IStorageMember oldMember, IStorageMember newMember)
         {
             StorageHandler.ReplaceEntry(oldMember, newMember);
-
-            var viewOldMemberIndex = StorageCollection.IndexOf(oldMember);
-            if (viewOldMemberIndex >= 0)
-                StorageCollection[viewOldMemberIndex] = newMember;
-
-            var backupOldMemberIndex = BackupStorageCollection.IndexOf(oldMember);
-            if (backupOldMemberIndex >= 0)
-                BackupStorageCollection[backupOldMemberIndex] = newMember;
+            SynchronizationService.Replace(oldMember, newMember);
         }
 
-        private void ImportStorageMember(IStorageMember member)
-        {
-            StorageCollection.Add(member);
-            BackupStorageCollection.Add(member);
-        }
+        private void ImportStorageMember(IStorageMember member) =>
+            SynchronizationService.Add(member);
 
         private void RunImport()
         {
@@ -216,7 +176,7 @@ namespace SafeBox.ViewModels
 
         private void RunExport()
         {
-            if (BackupStorageCollection.Count == 0)
+            if (!SynchronizationService.HasElements)
             {
                 Logger.Error($"{Constants.ExportLogMark}: {Constants.ExportEmptyStorageCollectionMessage}");
                 MessageBox.Show(Constants.ExportEmptyStorageCollectionMessage, "SafeBox Export", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -230,11 +190,11 @@ namespace SafeBox.ViewModels
                 MessageBox.Show(Constants.LocalMachineIsNotVerifiedMessage, "SafeBox Export", MessageBoxButton.OK, MessageBoxImage.Error);
 
                 return;
-            }    
+            }
 
             var vm = new ExportViewModel();
 
-            vm.AttachExportableCollection(BackupStorageCollection);
+            vm.AttachExportableCollection(SynchronizationService.CloneCollection());
             vm.AttachNativeCryptographer(dpapiCryptographer);
 
             windowService.ShowWindow<ExportWindow>(vm);
@@ -252,7 +212,7 @@ namespace SafeBox.ViewModels
         {
             try
             {
-                return BackupStorageCollection.All(x =>
+                return SynchronizationService.SourceCollection.All(x =>
                 {
                     using var secPwd = dpapiCryptographer.Decrypt(x.PasswordHash);
                     return secPwd != null && secPwd.Length > 0;
@@ -272,7 +232,7 @@ namespace SafeBox.ViewModels
                 ImportStorage(e.ImportedCollection);
 
                 Logger.Info($"{Constants.ImportLogMark}: " +
-                    $"{BackupStorageCollection.Count} storage members were successfully imported from the file '{e.FileName}'.");
+                    $"{e.ImportedCollection.Count()} storage members were successfully imported from the file '{e.FileName}'.");
 
                 MessageBox.Show($"Accounts were successfully imported from the file '{e.FileName}'.",
                     "SafeBox Export", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -290,7 +250,7 @@ namespace SafeBox.ViewModels
             {
                 StorageHandler.AddEntry(e.StorageMember);
                 ImportStorageMember(e.StorageMember);
-                SelectedStorageItem = e.StorageMember;
+                SynchronizationService.SelectedItem = e.StorageMember;
 
                 Logger.Info($"{Constants.CreateLogMark}: Added a new storage member '{e.StorageMember.ResourceName}'.");
             }
@@ -321,6 +281,32 @@ namespace SafeBox.ViewModels
 
                 Logger.Info($"{Constants.SettingsLogMark}: The storage path has been changed '{StorageHandler.GetStoragePath()}'");
             }
+        }
+
+        public void DragEnter(IDropInfo dropInfo) { }
+
+        public void DragOver(IDropInfo dropInfo)
+        {
+            var targetItem = (IStorageMember)dropInfo.TargetItem;
+            if (targetItem != null)
+            {
+                dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
+                dropInfo.Effects = DragDropEffects.Move;
+            }
+        }
+
+        public void DragLeave(IDropInfo dropInfo) { }
+
+        public void Drop(IDropInfo dropInfo)
+        {
+            var sourceMember = dropInfo.Data as IStorageMember;
+            var targetMember = dropInfo.TargetItem as IStorageMember;
+
+            if (sourceMember == targetMember)
+                return;
+
+            SynchronizationService.Move(sourceMember, targetMember);
+            StorageHandler.OverwriteStorage(SynchronizationService.GetExplicitCollectionOfType<StorageMember>());
         }
     }
 }

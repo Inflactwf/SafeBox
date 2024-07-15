@@ -51,13 +51,8 @@ namespace SafeBox.ViewModels
 
         #endregion
 
-        public void AttachExportableCollection(ObservableCollection<IStorageMember> collection)
-        {
-            this.collection.Clear();
-
-            foreach (var member in collection)
-                this.collection.Add(member.Clone());
-        }
+        public void AttachExportableCollection(ObservableCollection<IStorageMember> collection) =>
+            this.collection = collection;
 
         public void AttachNativeCryptographer(ICryptographer<SecureString> cryptographer) =>
             nativeCryptographer = cryptographer;
