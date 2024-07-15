@@ -155,7 +155,19 @@
                             </Button>
                         </StackPanel>
                         <StackPanel Orientation="Vertical" Margin="0,5,0,0">
-                            <TextBlock Text="{Binding Login}" Foreground="White" Margin="34,0,0,0"/>
+                            <TextBlock
+                                Visibility="{Binding Description, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource StringIsEmptyVisibilityConverter}}"
+                                Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                                Foreground="White"
+                                Margin="34 0 0 3"
+                                Opacity="0.4"
+                                MaxWidth="450"
+                                HorizontalAlignment="Left"/>
+                            
+                            <TextBlock
+                                Text="{Binding Login}"
+                                Foreground="White"
+                                Margin="34 0 0 0"/>
 
                             <TextBlock
                                 x:Name="pwdBlock"

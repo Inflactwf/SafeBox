@@ -8,6 +8,7 @@ namespace SafeBox.Interfaces
     {
         string ResourceName { get; }
         ServiceType ServiceType { get; }
+        string Description { get; }
         string Login { get; }
         string PasswordHash { get; }
 

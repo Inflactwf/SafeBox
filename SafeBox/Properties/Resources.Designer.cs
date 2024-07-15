@@ -83,9 +83,29 @@ namespace SafeBox.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap BattleNet {
+            get {
+                object obj = ResourceManager.GetObject("BattleNet", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap EditKey {
             get {
                 object obj = ResourceManager.GetObject("EditKey", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Epic {
+            get {
+                object obj = ResourceManager.GetObject("Epic", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

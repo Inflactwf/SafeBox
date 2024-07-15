@@ -23,6 +23,8 @@ namespace SafeBox.Infrastructure
                 ServiceType.Steam => new BitmapImage(new Uri("pack://application:,,,/Resources/Steam.png")),
                 ServiceType.Origin => new BitmapImage(new Uri("pack://application:,,,/Resources/Origin.png")),
                 ServiceType.Uplay => new BitmapImage(new Uri("pack://application:,,,/Resources/Uplay.png")),
+                ServiceType.BattleNet => new BitmapImage(new Uri("pack://application:,,,/Resources/BattleNet.png")),
+                ServiceType.Epic => new BitmapImage(new Uri("pack://application:,,,/Resources/Epic.png")),
                 _ => new BitmapImage(new Uri("pack://application:,,,/Resources/Website.png")),
             };
     }

@@ -55,7 +55,7 @@
 
     <Border Margin="5">
         <Grid SnapsToDevicePixels="True">
-            <StackPanel Orientation="Horizontal" Margin="0,10,0,242" >
+            <StackPanel Orientation="Horizontal" Margin="0,20,0,247" VerticalAlignment="Top" >
                 <TextBox
                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
                     Text="{Binding Member.ResourceName, UpdateSourceTrigger=PropertyChanged}"
@@ -104,7 +104,18 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
             </StackPanel>
-            <StackPanel Margin="0,120,0,64" >
+            <StackPanel Orientation="Horizontal" Margin="0,92,0,199" Height="50" >
+                <TextBox
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    Text="{Binding Member.Description, UpdateSourceTrigger=PropertyChanged}"
+                    md:HintAssist.IsFloating="False"
+                    md:HintAssist.Foreground="White"
+                    md:TextFieldAssist.HasClearButton="True"
+                    md:HintAssist.Hint="Enter a new description of the resource..."
+                    Foreground="White"
+                    MaxLength="70" Margin="20,0,20,0" Width="449" />
+            </StackPanel>
+            <StackPanel Margin="0,150,0,64" >
 
                 <TextBox
                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
@@ -129,8 +140,8 @@
                     Foreground="White" Margin="0,5,0,0" />
                 <TextBlock
                     TextWrapping="Wrap"
-                    Text="Tip: it is not necessary to enter a new password. Leave the field empty if there is no need to change the password."
-                    Foreground="#7FD3D3D3" HorizontalAlignment="Center" Margin="0,30,0,0" Width="319"/>
+                    Text="Tip: leave the field empty if there is no need to change the password."
+                    Foreground="#7FD3D3D3" HorizontalAlignment="Center" Margin="0,25,0,0"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,282,0,0" HorizontalAlignment="Right" VerticalAlignment="Bottom">
                 <Button

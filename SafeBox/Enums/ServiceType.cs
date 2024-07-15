@@ -7,6 +7,8 @@
         Application,
         Steam,
         Origin,
-        Uplay
+        Uplay,
+        BattleNet,
+        Epic
     }
 }

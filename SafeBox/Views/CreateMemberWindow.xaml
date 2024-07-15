@@ -55,10 +55,10 @@
 
     <Border Margin="5">
         <Grid SnapsToDevicePixels="True">
-            <StackPanel Orientation="Horizontal" Margin="0,10,0,242" >
+            <StackPanel Orientation="Horizontal" Margin="0,20,0,247" VerticalAlignment="Top" >
                 <TextBox
                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                    Text="{Binding ResourceName, UpdateSourceTrigger=PropertyChanged}"
+                    Text="{Binding Member.ResourceName, UpdateSourceTrigger=PropertyChanged}"
                     md:HintAssist.IsFloating="False"
                     md:HintAssist.Foreground="White"
                     md:TextFieldAssist.HasClearButton="True"
@@ -73,7 +73,7 @@
                     FocusVisualStyle="{x:Null}"
                     Style="{StaticResource MaterialDesignOutlinedComboBox}"
                     ItemsSource="{x:Static i:StaticResources.ServiceTypes}"
-                    SelectedItem="{Binding SelectedServiceType, UpdateSourceTrigger=PropertyChanged}"
+                    SelectedItem="{Binding Member.ServiceType, UpdateSourceTrigger=PropertyChanged}"
                     md:ComboBoxAssist.ShowSelectedItem="True"
                     md:HintAssist.Foreground="White"
                     md:HintAssist.Hint="Resource Type"
@@ -103,11 +103,22 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
             </StackPanel>
-            <StackPanel Margin="0,120,0,64" >
+            <StackPanel Orientation="Horizontal" Margin="0,92,0,199" Height="50" >
+                <TextBox
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    Text="{Binding Member.Description, UpdateSourceTrigger=PropertyChanged}"
+                    md:HintAssist.IsFloating="False"
+                    md:HintAssist.Foreground="White"
+                    md:TextFieldAssist.HasClearButton="True"
+                    md:HintAssist.Hint="Enter a description of the resource..."
+                    Foreground="White"
+                    MaxLength="70" Margin="20,0,20,0" Width="449" />
+            </StackPanel>
+            <StackPanel Margin="0,150,0,64" >
 
                 <TextBox
                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                    Text="{Binding Login, UpdateSourceTrigger=PropertyChanged}"
+                    Text="{Binding Member.Login, UpdateSourceTrigger=PropertyChanged}"
                     md:TextFieldAssist.HasLeadingIcon="True"
                     md:TextFieldAssist.LeadingIcon="UserBadge"
                     md:HintAssist.Foreground="White"
@@ -122,14 +133,14 @@
                     md:TextFieldAssist.LeadingIcon="FormTextboxPassword"
                     md:HintAssist.Foreground="White"
                     md:TextFieldAssist.HasClearButton="True"
-                    md:PasswordBoxAssist.Password="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
+                    md:PasswordBoxAssist.Password="{Binding Member.PasswordHash, UpdateSourceTrigger=PropertyChanged}"
                     md:HintAssist.Hint="* Enter your password..."
                     Width="220"
                     Foreground="White" Margin="0,5,0,0" />
                 <TextBlock
                     TextWrapping="Wrap"
                     Text="Tip: fields marked with an asterisk (*) are necessary."
-                    Foreground="#7FD3D3D3" Margin="0,40,0,0" HorizontalAlignment="Center"/>
+                    Foreground="#7FD3D3D3" Margin="0,25,0,0" HorizontalAlignment="Center"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,282,0,0" HorizontalAlignment="Right" VerticalAlignment="Bottom">
                 <Button
@@ -155,9 +166,9 @@
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" FontFamily="Segoe UI">
                     <Button.IsEnabled>
                         <MultiBinding Converter="{StaticResource StringToBooleanMultiConverter}">
-                            <Binding Path="ResourceName" />
-                            <Binding Path="Login" />
-                            <Binding Path="Password" />
+                            <Binding Path="Member.ResourceName" />
+                            <Binding Path="Member.Login" />
+                            <Binding Path="Member.PasswordHash" />
                         </MultiBinding>
                     </Button.IsEnabled>
                     <b:Interaction.Triggers>
