@@ -6,7 +6,7 @@ using SafeBox.Interfaces;
 using SafeBox.Models;
 using SafeBox.Security;
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -22,7 +22,7 @@ namespace SafeBox.ViewModels
         private readonly ICryptographer<string> shaCryptographer;
         private ICryptographer<SecureString> nativeCryptographer;
         private IFileHandler fileHandler;
-        private ObservableCollection<IStorageMember> collection = [];
+        private IEnumerable<IStorageMember> collection = [];
 
         private string _location;
         private string _password = string.Empty;
@@ -51,7 +51,7 @@ namespace SafeBox.ViewModels
 
         #endregion
 
-        public void AttachExportableCollection(ObservableCollection<IStorageMember> collection) =>
+        public void AttachExportableCollection(IEnumerable<IStorageMember> collection) =>
             this.collection = collection;
 
         public void AttachNativeCryptographer(ICryptographer<SecureString> cryptographer) =>
@@ -81,7 +81,7 @@ namespace SafeBox.ViewModels
                 fileHandler.Write(encryptedData);
 
                 var logMsg = $"Accounts were successfully exported to the file '{fileHandler.FileName}'.";
-
+                
                 Logger.Info($"{Constants.ExportLogMark}: {logMsg}");
                 MessageBox.Show(logMsg, "SafeBox Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -98,7 +98,7 @@ namespace SafeBox.ViewModels
 
         private void ReEncryptExtractingCollection(string hash)
         {
-            var unsafeCollection = new ObservableCollection<IStorageMember>();
+            var unsafeCollection = new List<IStorageMember>();
 
             foreach (var member in collection)
             {
@@ -116,7 +116,7 @@ namespace SafeBox.ViewModels
             }
 
             if (unsafeCollection.Count > 0)
-                collection = new(collection.Except(unsafeCollection));
+                collection = collection.Except(unsafeCollection);
         }
 
         private void SelectLocation()
