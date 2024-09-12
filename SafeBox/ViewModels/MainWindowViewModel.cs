@@ -53,47 +53,46 @@ namespace SafeBox.ViewModels
 
         #endregion
 
-        private void LoadStorage()
-        {
-            var entries = StorageHandler.GetEntries();
-            ImportStorage(entries);
-        }
+        private void LoadStorage() => ImportStorage(StorageHandler.GetEntries());
 
         private void CopyToClipboard(string passwordHash)
         {
-            using var secureString = dpapiCryptographer.Decrypt(passwordHash);
-            var insecureString = secureString == null
-                ? "UNKNOWN"
-                : SecurityHelper.SecureStringToString(secureString);
+            DecryptHashToInsecurePassword(passwordHash, out string insecurePassword);
 
             try
             {
-                ClipboardHandler.CopyTextToClipboard(insecureString);
+                ClipboardHandler.CopyTextToClipboard(insecurePassword);
             }
             finally
             {
-                SecurityHelper.DecomposeString(ref insecureString);
+                SecurityHelper.DecomposeString(ref insecurePassword);
             }
         }
 
         private async Task ShowPassword(IStorageMember member)
         {
-            using var secureString = dpapiCryptographer.Decrypt(member.PasswordHash);
-            var insecureString = secureString == null
-                ? "UNKNOWN"
-                : SecurityHelper.SecureStringToString(secureString);
+            DecryptHashToInsecurePassword(member.PasswordHash, out string insecurePassword);
 
             try
             {
-                member.DisplayInsecurePassword = string.Intern(insecureString);
+                member.DisplayInsecurePassword = string.Intern(insecurePassword);
                 member.IsPasswordVisible = true;
                 await Task.Delay(Constants.PasswordShowTimeInMilliseconds);
             }
             finally
             {
                 member.IsPasswordVisible = false;
-                SecurityHelper.DecomposeString(ref insecureString);
+                SecurityHelper.DecomposeString(ref insecurePassword);
             }
+        }
+
+        private void DecryptHashToInsecurePassword(string passwordHash, out string insecurePassword)
+        {
+            using var secureString = dpapiCryptographer.Decrypt(passwordHash);
+
+            insecurePassword = secureString == null
+                ? "UNKNOWN"
+                : SecurityHelper.SecureStringToString(secureString);
         }
 
         private void AddMember()
@@ -129,7 +128,7 @@ namespace SafeBox.ViewModels
 
         private void RemoveMember()
         {
-            // We should write to temporary variable because message box removes the focus from the selected item of listbox.
+            // We should write to temporary variable because message box removes the focus from selected item of the listbox.
             var storageMember = SynchronizationService.SelectedItem;
 
             if (MessageBox.Show(
