@@ -264,7 +264,7 @@
 
                                         <TextBox
                                             x:Name="SearchBox"
-                                            Text="{Binding SearchCriteria, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Text="{Binding SynchronizationService.SearchCriteria, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                             Visibility="{Binding SynchronizationService.Count, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource ZeroCountToVisibilityConverter}}"
                                             TextWrapping="NoWrap"
                                             VerticalContentAlignment="Center"
@@ -292,7 +292,7 @@
                                         <lb:SearchFocusBehavior 
                                             Target="{Binding ElementName=SearchBox}"
                                             RevertFocusTarget="{Binding RelativeSource={RelativeSource AncestorType=ListBox}}"
-                                            SearchTextProperty="{Binding SearchCriteria, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                            SearchTextProperty="{Binding SynchronizationService.SearchCriteria, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                     </b:Interaction.Behaviors>
                                 </Grid>
 
@@ -324,7 +324,7 @@
 
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding SearchCriteria, Converter={StaticResource StringToBooleanConverter}}" Value="False" />
+                                            <Condition Binding="{Binding SynchronizationService.SearchCriteria, Converter={StaticResource StringToBooleanConverter}}" Value="False" />
                                             <Condition Binding="{Binding IsFocused, ElementName=SearchBox}" Value="False" />
                                         </MultiDataTrigger.Conditions>
                                         <MultiDataTrigger.EnterActions>
@@ -348,7 +348,7 @@
 
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding SearchCriteria, Converter={StaticResource StringToBooleanConverter}}" Value="True" />
+                                            <Condition Binding="{Binding SynchronizationService.SearchCriteria, Converter={StaticResource StringToBooleanConverter}}" Value="True" />
                                             <Condition Binding="{Binding IsFocused, ElementName=SearchBox}" Value="False" />
                                         </MultiDataTrigger.Conditions>
                                         <Setter TargetName="SearchBox" Property="Width" Value="220" />
