@@ -33,16 +33,14 @@ namespace SafeBox.Models
 
         public int CompareTo(IStorageMember other)
         {
-            if (other != null)
+            if (other != null &&
+                other.ResourceName == ResourceName &&
+                other.ServiceType == ServiceType &&
+                other.Description == Description &&
+                other.Login == Login &&
+                other.PasswordHash == PasswordHash)
             {
-                if (other.ResourceName == ResourceName &&
-                    other.ServiceType == ServiceType &&
-                    other.Description == Description &&
-                    other.Login == Login &&
-                    other.PasswordHash == PasswordHash)
-                {
-                    return 0;
-                }
+                return 0;
             }
 
             return 1;
