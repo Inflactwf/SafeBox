@@ -1,6 +1,7 @@
 ﻿using GongSolutions.Wpf.DragDrop;
 using SafeBox.Commands;
 using SafeBox.EventArguments;
+using SafeBox.Extensions;
 using SafeBox.Handlers;
 using SafeBox.Infrastructure;
 using SafeBox.Interfaces;
@@ -8,9 +9,7 @@ using SafeBox.Models;
 using SafeBox.Security;
 using SafeBox.Services;
 using SafeBox.Views;
-using System.Collections.Generic;
 using System.Linq;
-using System.Security;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -20,23 +19,23 @@ namespace SafeBox.ViewModels
     {
         #region Private Fields
 
-        private readonly ICryptographer<SecureString> dpapiCryptographer;
         private readonly IWindowService windowService;
+        private readonly IdentityService identityService;
 
         #endregion
 
         public MainWindowViewModel()
         {
-            dpapiCryptographer = new DPAPICryptographer();
             windowService = new WindowService();
-            SynchronizationService = new();
+            identityService = new(windowService, SynchronizationService);
 
-            LoadStorage();
+            SynchronizationService.Set(StorageHandler.GetEntries());
+            identityService.Init();
         }
 
         #region Public Properties
 
-        public ViewSynchronizationService<IStorageMember> SynchronizationService { get; }
+        public ViewSynchronizationService<IStorageMember> SynchronizationService { get; } = new();
 
         #endregion
 
@@ -52,8 +51,6 @@ namespace SafeBox.ViewModels
         public RelayCommand ShowSettingsCommand => new(RunSettings);
 
         #endregion
-
-        private void LoadStorage() => ImportStorage(StorageHandler.GetEntries());
 
         private void CopyToClipboard(string passwordHash)
         {
@@ -88,27 +85,25 @@ namespace SafeBox.ViewModels
 
         private void DecryptHashToInsecurePassword(string passwordHash, out string insecurePassword)
         {
-            using var secureString = dpapiCryptographer.Decrypt(passwordHash);
+            using var key = SecurityHelper.TryGetSecureKeyAsSecureStringOrNull();
+            using var securePassword = AesCryptographer.DecryptToSecureString(passwordHash, key);
 
-            insecurePassword = secureString == null
+            insecurePassword = securePassword.IsNull()
                 ? "UNKNOWN"
-                : SecurityHelper.SecureStringToString(secureString);
+                : SecurityHelper.SecureStringToString(securePassword);
         }
 
         private void AddMember()
         {
             var vm = new CreateMemberViewModel();
-            vm.AttachNativeCryptographer(dpapiCryptographer);
             vm.CreatingFinished += CreateMemberViewModel_CreatingFinished;
-
             windowService.ShowWindow<CreateMemberWindow>(vm);
-
             vm.CreatingFinished -= CreateMemberViewModel_CreatingFinished;
         }
 
         private void EditMember()
         {
-            if (!IsCurrentMachineVerified())
+            if (!identityService.IsCurrentMachineVerified())
             {
                 Logger.Error($"{Constants.EditLogMark}: {Constants.LocalMachineIsNotVerifiedMessage}");
                 MessageBox.Show(Constants.LocalMachineIsNotVerifiedMessage, "SafeBox Export", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -116,13 +111,9 @@ namespace SafeBox.ViewModels
                 return;
             }
 
-            var vm = new EditMemberViewModel();
-            vm.AttachStorageMember(SynchronizationService.SelectedItem);
-            vm.AttachNativeCryptographer(dpapiCryptographer);
+            var vm = new EditMemberViewModel(SynchronizationService.SelectedItem);
             vm.EditingFinished += EditMemberViewModel_EditingFinished;
-
             windowService.ShowWindow<EditMemberWindow>(vm);
-
             vm.EditingFinished -= EditMemberViewModel_EditingFinished;
         }
 
@@ -147,29 +138,17 @@ namespace SafeBox.ViewModels
             Logger.Info($"{Constants.RemoveLogMark}: Removed storage member '{storageMember.ResourceName}'.");
         }
 
-        private void ImportStorage(IEnumerable<IStorageMember> collection)
-        {
-            SynchronizationService.SearchCriteria = string.Empty;
-            SynchronizationService.Set(collection);
-        }
-
         private void ReplaceStorageMember(IStorageMember oldMember, IStorageMember newMember)
         {
             StorageHandler.ReplaceEntry(oldMember, newMember);
             SynchronizationService.Replace(oldMember, newMember);
         }
 
-        private void ImportStorageMember(IStorageMember member) =>
-            SynchronizationService.Add(member);
-
         private void RunImport()
         {
             var vm = new ImportViewModel();
-            vm.AttachNativeCryptographer(dpapiCryptographer);
             vm.ImportFinished += ImportViewModel_ImportFinished;
-
             windowService.ShowWindow<ImportWindow>(vm);
-
             vm.ImportFinished -= ImportViewModel_ImportFinished;
         }
 
@@ -183,7 +162,7 @@ namespace SafeBox.ViewModels
                 return;
             }
 
-            if (!IsCurrentMachineVerified())
+            if (!identityService.IsCurrentMachineVerified())
             {
                 Logger.Error($"{Constants.ExportLogMark}: {Constants.LocalMachineIsNotVerifiedMessage}");
                 MessageBox.Show(Constants.LocalMachineIsNotVerifiedMessage, "SafeBox Export", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -191,11 +170,7 @@ namespace SafeBox.ViewModels
                 return;
             }
 
-            var vm = new ExportViewModel();
-
-            vm.AttachExportableCollection(SynchronizationService.CloneCollection());
-            vm.AttachNativeCryptographer(dpapiCryptographer);
-
+            var vm = new ExportViewModel(SynchronizationService.CloneCollection());
             windowService.ShowWindow<ExportWindow>(vm);
         }
 
@@ -207,28 +182,12 @@ namespace SafeBox.ViewModels
             vm.SettingsChanged -= SettingsViewModel_SettingsChanged;
         }
 
-        private bool IsCurrentMachineVerified()
-        {
-            try
-            {
-                return SynchronizationService.SourceCollection.All(x =>
-                {
-                    using var secPwd = dpapiCryptographer.Decrypt(x.PasswordHash);
-                    return secPwd != null && secPwd.Length > 0;
-                });
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
         private void ImportViewModel_ImportFinished(ImportFinishedEventArgs e)
         {
             if (e.IsSuccess)
             {
                 StorageHandler.OverwriteStorage(e.ImportedCollection);
-                ImportStorage(e.ImportedCollection);
+                SynchronizationService.Set(e.ImportedCollection);
 
                 Logger.Info($"{Constants.ImportLogMark}: " +
                     $"{e.ImportedCollection.Count()} storage members were successfully imported from the file '{e.FileName}'.");
@@ -245,10 +204,13 @@ namespace SafeBox.ViewModels
 
         private void CreateMemberViewModel_CreatingFinished(CreatingMemberFinishedEventArgs e)
         {
+            if (e.StorageMember == null)
+                return;
+
             if (!StorageHandler.IsEntryExists(e.StorageMember))
             {
                 StorageHandler.AddEntry(e.StorageMember);
-                ImportStorageMember(e.StorageMember);
+                SynchronizationService.Add(e.StorageMember);
                 SynchronizationService.SelectedItem = e.StorageMember;
 
                 Logger.Info($"{Constants.CreateLogMark}: Added a new storage member '{e.StorageMember.ResourceName}'.");
@@ -276,7 +238,7 @@ namespace SafeBox.ViewModels
             if (e.HasStorageChanged)
             {
                 StorageHandler.Refresh();
-                LoadStorage();
+                SynchronizationService.Set(StorageHandler.GetEntries());
 
                 Logger.Info($"{Constants.SettingsLogMark}: The storage path has been changed '{StorageHandler.GetStoragePath()}'");
             }
@@ -305,7 +267,7 @@ namespace SafeBox.ViewModels
                 return;
 
             SynchronizationService.Move(sourceMember, targetMember);
-            StorageHandler.OverwriteStorage(SynchronizationService.GetExplicitCollectionOfType<StorageMember>());
+            StorageHandler.OverwriteStorage(SynchronizationService.GetCollectionOfExplicitType<StorageMember>());
         }
     }
 }

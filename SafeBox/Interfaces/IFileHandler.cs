@@ -1,6 +1,6 @@
 ﻿namespace SafeBox.Interfaces
 {
-    internal interface IFileHandler
+    public interface IFileHandler
     {
         string Read();
         void Write(string text);

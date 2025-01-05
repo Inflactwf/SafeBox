@@ -108,6 +108,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\AuthenticationWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Views\SettingsWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -130,10 +134,12 @@
     </Compile>
     <Compile Include="Behaviors\BorderlessWindowDragBehavior.cs" />
     <Compile Include="Behaviors\ListBoxAddingScrollBehavior.cs" />
+    <Compile Include="Behaviors\PasswordBoxSecureBehavior.cs" />
     <Compile Include="Behaviors\SearchFocusBehavior.cs" />
     <Compile Include="Behaviors\WindowClosingBehavior.cs" />
     <Compile Include="Commands\GenericRelayCommand.cs" />
     <Compile Include="Commands\RelayCommand.cs" />
+    <Compile Include="Converters\SecureStringToBooleanConverter.cs" />
     <Compile Include="Converters\StringToBooleanMultiConverter.cs" />
     <Compile Include="Converters\NullToBooleanConverter.cs" />
     <Compile Include="Converters\StringToBooleanConverter.cs" />
@@ -146,6 +152,7 @@
     <Compile Include="EventArguments\SettingsChangedEventArgs.cs" />
     <Compile Include="Extensions\ICloneableExtensions.cs" />
     <Compile Include="Extensions\JsonExtensions.cs" />
+    <Compile Include="Extensions\SecureStringExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Handlers\ClipboardHandler.cs" />
     <Compile Include="Handlers\ConfigurationHandler.cs" />
@@ -155,7 +162,6 @@
     <Compile Include="Infrastructure\Logger.cs" />
     <Compile Include="Infrastructure\StaticResources.cs" />
     <Compile Include="Infrastructure\Utilities.cs" />
-    <Compile Include="Interfaces\ICryptographer.cs" />
     <Compile Include="Interfaces\IStorageMember.cs" />
     <Compile Include="Interfaces\IWindowService.cs" />
     <Compile Include="Interfaces\IFileHandler.cs" />
@@ -164,7 +170,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Services\IdentityService.cs" />
     <Compile Include="Services\ViewSynchronizationService.cs" />
+    <Compile Include="ViewModels\AuthenticationViewModel.cs" />
     <Compile Include="ViewModels\EditMemberViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
     <Compile Include="Models\StorageMember.cs" />
@@ -183,6 +191,9 @@
     </Compile>
     <Compile Include="Views\CreateMemberWindow.xaml.cs">
       <DependentUpon>CreateMemberWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\AuthenticationWindow.xaml.cs">
+      <DependentUpon>AuthenticationWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
@@ -210,6 +221,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">

@@ -10,7 +10,7 @@
         xmlns:lb="clr-namespace:SafeBox.Behaviors"
         xmlns:gong="urn:gong-wpf-dragdrop"
         mc:Ignorable="d"
-        
+        d:DataContext="{x:Null}"
         x:Name="Window"
         Title="SafeBox"
         Height="450" Width="800"
@@ -106,9 +106,10 @@
                     <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                 </Style>
             </ListBox.ItemContainerStyle>
+            
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <VirtualizingStackPanel x:Name="itemPanel" Orientation="Vertical">
+                    <VirtualizingStackPanel x:Name="itemsPanel" Orientation="Vertical">
                         <StackPanel Orientation="Horizontal">
                             <Image
                                 Source="{Binding ServiceType, Converter={StaticResource ServiceTypeToImageConverter}}"
@@ -163,7 +164,7 @@
                                 Opacity="0.4"
                                 MaxWidth="450"
                                 HorizontalAlignment="Left"/>
-                            
+
                             <TextBlock
                                 Text="{Binding Login}"
                                 Foreground="White"
@@ -185,7 +186,7 @@
                                                             <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="8" Duration="0:0:1" />
                                                             <DoubleAnimation Storyboard.TargetProperty="Opacity" From="8" To="-2" Duration="0:0:3.5" BeginTime="0:0:0.2" />
                                                             <DoubleAnimation
-                                                                Storyboard.Target="{Binding ElementName=itemPanel}"
+                                                                Storyboard.Target="{Binding ElementName=itemsPanel}"
                                                                 Storyboard.TargetProperty="Height"
                                                                 From="0"
                                                                 To="25"
@@ -193,7 +194,7 @@
                                                             </DoubleAnimation>
 
                                                             <DoubleAnimation
-                                                                Storyboard.Target="{Binding ElementName=itemPanel}"
+                                                                Storyboard.Target="{Binding ElementName=itemsPanel}"
                                                                 Storyboard.TargetProperty="Height"
                                                                 From="25"
                                                                 To="0"
@@ -395,7 +396,7 @@
                         </BeginStoryboard>
                     </EventTrigger>
                 </StackPanel.Triggers>
-                
+
                 <StackPanel Orientation="Horizontal" Margin="0,15,0,0" HorizontalAlignment="Left">
                     <Button
                         md:RippleAssist.IsCentered="True"
@@ -414,7 +415,7 @@
                     <TextBlock
                         TextWrapping="Wrap" Text="IMPORT" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
                 </StackPanel>
-                
+
                 <StackPanel Orientation="Horizontal" Margin="0,15,0,0" HorizontalAlignment="Left">
                     <Button
                         md:RippleAssist.IsCentered="True"
@@ -433,7 +434,7 @@
                     <TextBlock
                         TextWrapping="Wrap" Text="EXPORT" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
                 </StackPanel>
-                
+
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,15,0,0">
                     <Button
                         md:RippleAssist.IsCentered="True"
@@ -449,7 +450,7 @@
                             </b:EventTrigger>
                         </b:Interaction.Triggers>
                     </Button>
-                    
+
                     <TextBlock
                         TextWrapping="Wrap" Text="SETTINGS" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
                 </StackPanel>

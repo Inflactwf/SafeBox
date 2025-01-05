@@ -4,7 +4,6 @@ using SafeBox.Extensions;
 using SafeBox.Interfaces;
 using SafeBox.Models;
 using SafeBox.Security;
-using System.Security;
 
 namespace SafeBox.ViewModels
 {
@@ -12,7 +11,6 @@ namespace SafeBox.ViewModels
     {
         #region Private Fields
 
-        private ICryptographer<SecureString> nativeCryptographer;
         private IStorageMember _member;
         private IStorageMember _originalMember;
         private string _newPassword;
@@ -30,6 +28,14 @@ namespace SafeBox.ViewModels
         public delegate void OnEditingMemberFinished(EditingMemberFinishedEventArgs e);
         public event OnEditingMemberFinished EditingFinished;
 
+        public EditMemberViewModel() { }
+
+        public EditMemberViewModel(IStorageMember storageMember)
+        {
+            _originalMember = storageMember;
+            _member = storageMember.Clone();
+        }
+
         #region Commands
 
         public RelayCommand SaveCommand => new(Save);
@@ -40,23 +46,15 @@ namespace SafeBox.ViewModels
         {
             if (!NewPassword.IsNullOrWhiteSpace())
             {
-                ((StorageMember)Member).PasswordHash = nativeCryptographer.Encrypt(NewPassword);
+                using var key = SecurityHelper.TryGetSecureKeyAsSecureStringOrNull();
+
+                ((StorageMember)Member).PasswordHash = AesCryptographer.Encrypt(NewPassword, key);
                 SecurityHelper.DecomposeString(ref _newPassword);
             }
 
             EditingFinished?.Invoke(new(HasChanges, _originalMember, _member));
         }
 
-        private bool HasChanges =>
-            _originalMember.CompareTo(_member) != 0;
-
-        public void AttachNativeCryptographer(ICryptographer<SecureString> cryptographer) =>
-            nativeCryptographer = cryptographer;
-
-        public void AttachStorageMember(IStorageMember storageMember)
-        {
-            _originalMember = storageMember;
-            _member = storageMember.Clone();
-        }
+        private bool HasChanges => _originalMember != null && _member != null && _originalMember.CompareTo(_member) != 0;
     }
 }

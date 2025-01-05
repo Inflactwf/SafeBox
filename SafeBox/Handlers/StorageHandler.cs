@@ -23,7 +23,7 @@ namespace SafeBox.Handlers
             if (storageWorker != null)
                 storageWorker.OnError -= StorageWorker_LogMessageReceived;
 
-            storageWorker = new DbWorker<StorageMember>(new(StaticResources.StorageFullPath), CultureInfo.InvariantCulture);
+            storageWorker = new DbWorker<StorageMember>(new(ConfigurationHandler.StorageFullPath), CultureInfo.InvariantCulture);
             storageWorker.OnError += StorageWorker_LogMessageReceived;
         }
 

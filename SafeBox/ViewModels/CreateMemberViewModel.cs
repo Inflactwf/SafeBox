@@ -2,7 +2,7 @@
 using SafeBox.EventArguments;
 using SafeBox.Interfaces;
 using SafeBox.Models;
-using System.Security;
+using SafeBox.Security;
 
 namespace SafeBox.ViewModels
 {
@@ -10,8 +10,7 @@ namespace SafeBox.ViewModels
     {
         #region Private Fields
 
-        private readonly IStorageMember _member = new StorageMember();
-        private ICryptographer<SecureString> nativeCryptographer;
+        private IStorageMember _member = new StorageMember();
 
         #endregion
 
@@ -30,9 +29,6 @@ namespace SafeBox.ViewModels
         public delegate void OnCreatingMemberFinished(CreatingMemberFinishedEventArgs e);
         public event OnCreatingMemberFinished CreatingFinished;
 
-        public void AttachNativeCryptographer(ICryptographer<SecureString> cryptographer) =>
-            nativeCryptographer = cryptographer;
-
         private void CreateMember()
         {
             EncryptStorageMember();
@@ -42,7 +38,9 @@ namespace SafeBox.ViewModels
         private void EncryptStorageMember()
         {
             var storageMember = Member as StorageMember;
-            storageMember.PasswordHash = nativeCryptographer.Encrypt(storageMember.PasswordHash);
+
+            using var key = SecurityHelper.TryGetSecureKeyAsSecureStringOrNull();
+            storageMember.PasswordHash = AesCryptographer.Encrypt(storageMember.PasswordHash, key);
         }
     }
 }

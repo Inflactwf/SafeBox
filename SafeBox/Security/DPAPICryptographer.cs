@@ -1,45 +1,39 @@
-﻿using SafeBox.Interfaces;
+﻿using SafeBox.Extensions;
+using SafeBox.Infrastructure;
 using System;
 using System.Security;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace SafeBox.Security
 {
-    internal class DPAPICryptographer : ICryptographer<SecureString>
+    internal static class DPAPICryptographer
     {
         private static readonly byte[] Entropy = [20];
 
-        public string Encrypt(string data, string key = null)
+        internal static string Encrypt(SecureString secureString)
         {
             try
             {
-                var encryptedData = ProtectedData.Protect(
-                    Encoding.Unicode.GetBytes(data),
-                    Entropy,
-                    DataProtectionScope.LocalMachine);
-
+                var encryptedData = ProtectedData.Protect(SecurityHelper.SecureStringToString(secureString).GetUTF8Bytes(), Entropy, DataProtectionScope.LocalMachine);
+                
                 return Convert.ToBase64String(encryptedData);
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.Error($"{Constants.DpapiLogMark}: An error occurred while encrypting:\n{ex.Message}\n{ex.StackTrace}");
                 return string.Empty;
             }
         }
 
-        public SecureString Decrypt(string data, string key = null)
+        internal static SecureString Decrypt(string data)
         {
             try
             {
-                var decryptedData = ProtectedData.Unprotect(
-                    Convert.FromBase64String(data),
-                    Entropy,
-                    DataProtectionScope.LocalMachine);
-
-                return SecurityHelper.ToSecureString(Encoding.Unicode.GetString(decryptedData));
+                return SecurityHelper.ToSecureString(ProtectedData.Unprotect(Convert.FromBase64String(data), Entropy, DataProtectionScope.LocalMachine));
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.Error($"{Constants.DpapiLogMark}: An error occurred while decrypting:\n{ex.Message}\n{ex.StackTrace}");
                 return null;
             }
         }

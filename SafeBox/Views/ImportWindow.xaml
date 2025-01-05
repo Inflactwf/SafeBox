@@ -12,11 +12,11 @@
         Title="SafeBox Import" Height="351" Width="499"
         AllowsTransparency="True"
         WindowStyle="None"
-        DataContext="{DynamicResource ImportViewModel}"
         ResizeMode="CanMinimize"
         Background="{x:Null}"
         Icon="/SafeIcon.ico"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        d:DataContext="{x:Null}">
     <Window.Resources>
         <vm:ImportViewModel x:Key="ImportViewModel" />
         <conv:StringToBooleanMultiConverter x:Key="StringToBooleanMultiConverter" />
@@ -80,7 +80,7 @@
                     Foreground="White" MaxWidth="450" IsReadOnly="True" IsEnabled="False" HorizontalContentAlignment="Stretch" HorizontalAlignment="Center" Margin="0,10,0,0" MaxHeight="60"/>
                 <TextBlock
                     TextWrapping="Wrap"
-                    Text="To make sure you are the owner of this backup, you must enter the password you set earlier in the export process."
+                    Text="To make sure you are the owner of this backup, you must enter the password you set earlier at the export process."
                     HorizontalAlignment="Center"
                     FontFamily="Calibri" FontSize="14"
                     Foreground="LightGray"
@@ -130,9 +130,6 @@
                     <b:Interaction.Triggers>
                         <b:EventTrigger EventName="Click">
                             <b:InvokeCommandAction Command="{Binding RunImportCommand}" />
-                            <b:CallMethodAction
-                                TargetObject="{Binding ElementName=Window}"
-                                MethodName="Close" />
                         </b:EventTrigger>
                     </b:Interaction.Triggers>
                 </Button>

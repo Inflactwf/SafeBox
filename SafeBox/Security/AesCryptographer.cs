@@ -1,42 +1,59 @@
 ﻿using SafeBox.Extensions;
-using SafeBox.Interfaces;
+using SafeBox.Infrastructure;
 using System;
 using System.IO;
+using System.Security;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace SafeBox.Security
 {
-    internal class AesCryptographer : ICryptographer<string>
+    internal class AesCryptographer
     {
-        public string Decrypt(string data, string key)
+        /// <summary>
+        /// Decrypts data using <seealso cref="SecureString"/> as a key and <seealso cref="Aes"/> as a crypto provider.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="key"></param>
+        /// <returns>Successful result is <seealso cref="string"/>, otherwise <see langword="default"/>.</returns>
+        internal static string Decrypt(string data, SecureString key)
         {
-            if (data.IsNullOrWhiteSpace() || key.IsNullOrWhiteSpace())
-                return default;
+            if (data.IsNullOrWhiteSpace() || key.IsNull())
+                return null;
 
-            var combinedArray = Convert.FromBase64String(data);
-            var iv = new byte[16];
-            var buffer = new byte[combinedArray.Length - iv.Length];
+            try
+            {
+                var combinedArray = Convert.FromBase64String(data);
+                var iv = new byte[16];
+                var buffer = new byte[combinedArray.Length - iv.Length];
 
-            Array.Copy(combinedArray, 0, iv, 0, iv.Length);
-            Array.Copy(combinedArray, iv.Length, buffer, 0, buffer.Length);
+                Array.Copy(combinedArray, 0, iv, 0, iv.Length);
+                Array.Copy(combinedArray, iv.Length, buffer, 0, buffer.Length);
 
-            using var aes = Aes.Create();
-            aes.Key = GetFixedLengthKey(key, 32);
-            aes.IV = iv;
+                using var aes = Aes.Create();
+                aes.Key = GetFixedLengthKey(key, 32);
+                aes.IV = iv;
 
-            var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+                var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
 
-            using var memoryStream = new MemoryStream(buffer);
-            using var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read);
-            using var streamReader = new StreamReader(cryptoStream);
+                using var memoryStream = new MemoryStream(buffer);
+                using var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read);
+                using var streamReader = new StreamReader(cryptoStream);
 
-            return streamReader.ReadToEnd();
+                return streamReader.ReadToEnd();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"{Constants.AesLogMark}: An error occurred while decrypting:\n{ex.Message}\n{ex.StackTrace}");
+                return null;
+            }
         }
 
-        public string Encrypt(string data, string key)
+        internal static SecureString DecryptToSecureString(string data, SecureString key) =>
+            SecurityHelper.ToSecureString(Decrypt(data, key));
+
+        internal static string Encrypt(string data, SecureString key)
         {
-            if (data.IsNullOrWhiteSpace() || key.IsNullOrWhiteSpace())
+            if (data.IsNullOrWhiteSpace() || key.IsNull())
                 return default;
 
             var iv = new byte[16];
@@ -66,12 +83,11 @@ namespace SafeBox.Security
             return Convert.ToBase64String(combinedArray);
         }
 
-        private static byte[] GetFixedLengthKey(string key, int length)
+        private static byte[] GetFixedLengthKey(SecureString key, int length)
         {
             using var sha512 = SHA512.Create();
 
-            var keyBytes = Encoding.UTF8.GetBytes(key);
-            var hashBytes = sha512.ComputeHash(keyBytes);
+            var hashBytes = key.GetHashBytes(sha512);
             var fixedLengthKey = new byte[length];
             Array.Copy(hashBytes, fixedLengthKey, length);
 

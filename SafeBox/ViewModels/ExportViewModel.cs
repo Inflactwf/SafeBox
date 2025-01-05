@@ -3,13 +3,10 @@ using SafeBox.Extensions;
 using SafeBox.Handlers;
 using SafeBox.Infrastructure;
 using SafeBox.Interfaces;
-using SafeBox.Models;
 using SafeBox.Security;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Security;
 using System.Windows.Forms;
 
 namespace SafeBox.ViewModels
@@ -18,9 +15,6 @@ namespace SafeBox.ViewModels
     {
         #region Private Fields
 
-        private readonly ICryptographer<string> aesCryptographer;
-        private readonly ICryptographer<string> shaCryptographer;
-        private ICryptographer<SecureString> nativeCryptographer;
         private IFileHandler fileHandler;
         private IEnumerable<IStorageMember> collection = [];
 
@@ -30,12 +24,6 @@ namespace SafeBox.ViewModels
 
         #endregion
 
-        public ExportViewModel()
-        {
-            aesCryptographer = new AesCryptographer();
-            shaCryptographer = new SHACryptographer();
-        }
-
         #region Binding Properties
 
         public string Password { get => _password; set => Set(ref _password, value); }
@@ -44,6 +32,15 @@ namespace SafeBox.ViewModels
 
         #endregion
 
+        public event Action RequestClose;
+
+        public ExportViewModel() { }
+
+        public ExportViewModel(IEnumerable<IStorageMember> collection)
+        {
+            this.collection = collection;
+        }
+
         #region Commands
 
         public RelayCommand RunExportCommand => new(RunExport);
@@ -51,17 +48,13 @@ namespace SafeBox.ViewModels
 
         #endregion
 
-        public void AttachExportableCollection(IEnumerable<IStorageMember> collection) =>
-            this.collection = collection;
-
-        public void AttachNativeCryptographer(ICryptographer<SecureString> cryptographer) =>
-            nativeCryptographer = cryptographer;
-
         private bool PerformFieldsCheck()
         {
             if (_password != _repeatedPassword)
             {
-                MessageBox.Show(Constants.PasswordAndConfirmationAreNotEquals, "SafeBox Export", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("The password and repeat password do not match. Fill all the required fields correctly and try again.",
+                    "SafeBox Export", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
                 return false;
             }
 
@@ -75,9 +68,12 @@ namespace SafeBox.ViewModels
 
             try
             {
-                var passwordHash = shaCryptographer.Encrypt(Password);
-                ReEncryptExtractingCollection(passwordHash);
-                var encryptedData = aesCryptographer.Encrypt(collection.JsonSerializeObject(), passwordHash);
+                using var passwordKey = SecurityHelper.ToSecureString(SHACryptographer.Encrypt(Password));
+                var encryptedData = AesCryptographer.Encrypt(collection.JsonSerializeObject(), passwordKey);
+
+                if (encryptedData.IsNullOrWhiteSpace())
+                    throw new Exception("Encrypted data is null or empty.");
+
                 fileHandler.Write(encryptedData);
 
                 var logMsg = $"Accounts were successfully exported to the file '{fileHandler.FileName}'.";
@@ -87,36 +83,16 @@ namespace SafeBox.ViewModels
             }
             catch (Exception ex)
             {
-                var logMsg = $"Unable to export accounts:\n\n{ex.Message}\n{ex.StackTrace}";
+                Logger.Error($"{Constants.ExportLogMark}: {ex.Message}\n{ex.StackTrace}");
 
-                Logger.Error($"{Constants.ExportLogMark}: {logMsg}");
-
-                if (MessageBox.Show(logMsg, "SafeBox Export", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) == DialogResult.Retry)
-                    RunExport();
-            }
-        }
-
-        private void ReEncryptExtractingCollection(string hash)
-        {
-            var unsafeCollection = new List<IStorageMember>();
-
-            foreach (var member in collection)
-            {
-                using var securePwd = nativeCryptographer.Decrypt(member.PasswordHash);
-
-                if (securePwd == null || securePwd.Length == 0)
+                if (MessageBox.Show($"An error occurred while exporting accounts.\nReason: {ex.Message}",
+                    "SafeBox Export", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) == DialogResult.Retry)
                 {
-                    unsafeCollection.Add(member);
-                    continue;
+                    RunExport();
                 }
-
-                var decryptedPassword = SecurityHelper.SecureStringToString(securePwd);
-                ((StorageMember)member).PasswordHash = aesCryptographer.Encrypt(decryptedPassword, hash);
-                SecurityHelper.DecomposeString(ref decryptedPassword);
             }
 
-            if (unsafeCollection.Count > 0)
-                collection = collection.Except(unsafeCollection);
+            RequestClose?.Invoke();
         }
 
         private void SelectLocation()

@@ -13,7 +13,6 @@
         Title="SafeBox Record Editing" Height="351" Width="499"
         AllowsTransparency="True"
         WindowStyle="None"
-        DataContext="{DynamicResource EditMemberViewModel}"
         ResizeMode="CanMinimize"
         Background="{x:Null}"
         Icon="/SafeIcon.ico"
@@ -104,6 +103,7 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
             </StackPanel>
+            
             <StackPanel Orientation="Horizontal" Margin="0,92,0,199" Height="50" >
                 <TextBox
                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
@@ -115,8 +115,8 @@
                     Foreground="White"
                     MaxLength="70" Margin="20,0,20,0" Width="449" />
             </StackPanel>
-            <StackPanel Margin="0,150,0,64" >
 
+            <StackPanel Margin="0,150,0,64" >
                 <TextBox
                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                     Text="{Binding Member.Login, UpdateSourceTrigger=PropertyChanged}"
@@ -143,6 +143,7 @@
                     Text="Tip: leave the field empty if there is no need to change the password."
                     Foreground="#7FD3D3D3" HorizontalAlignment="Center" Margin="0,25,0,0"/>
             </StackPanel>
+            
             <StackPanel Orientation="Horizontal" Margin="0,282,0,0" HorizontalAlignment="Right" VerticalAlignment="Bottom">
                 <Button
                     FocusVisualStyle="{x:Null}"
@@ -159,6 +160,7 @@
                         </b:EventTrigger>
                     </b:Interaction.Triggers>
                 </Button>
+                
                 <Button
                     FocusVisualStyle="{x:Null}"
                     Content="Save"
@@ -177,6 +179,7 @@
                     </b:Interaction.Triggers>
                 </Button>
             </StackPanel>
+            
             <Grid.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                     <GradientStop Color="#FF4A278A"/>

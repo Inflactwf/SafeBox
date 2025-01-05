@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace SafeBox.Services
 {
-    public class ViewSynchronizationService<T>(IEnumerable<T> collection) : ViewModelBase where T : IStorageMember
+    public sealed class ViewSynchronizationService<T>(IEnumerable<T> collection) : ViewModelBase where T : IStorageMember
     {
         #region Private Fields
 
@@ -98,6 +98,12 @@ namespace SafeBox.Services
             SourceCollection.Remove(item);
         }
 
+        public void Clear()
+        {
+            ViewCollection.Clear();
+            SourceCollection.Clear();
+        }
+
         public void Add(T item)
         {
             ViewCollection.Add(item);
@@ -106,6 +112,7 @@ namespace SafeBox.Services
 
         public void Set(IEnumerable<T> newCollection)
         {
+            SearchCriteria = string.Empty;
             ViewCollection = new(newCollection);
             SourceCollection = new(newCollection);
         }
@@ -120,7 +127,7 @@ namespace SafeBox.Services
             return collection;
         }
 
-        public IEnumerable<R> GetExplicitCollectionOfType<R>() where R : class
+        public IEnumerable<R> GetCollectionOfExplicitType<R>() where R : class
         {
             foreach (var member in SourceCollection)
                 yield return member as R;

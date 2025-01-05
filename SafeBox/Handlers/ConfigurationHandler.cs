@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿using SafeBox.Infrastructure;
+using System.Configuration;
 using System.Windows;
 
 namespace SafeBox.Handlers
@@ -32,7 +33,15 @@ namespace SafeBox.Handlers
             }
         }
 
+        public static void UpdateSecureKey(string value) => AddOrUpdate(Constants.SecureKeyParameterName, value);
+
+        public static void UpdateStorageFullPath(string value) => AddOrUpdate(Constants.StoragePathParameterName, value);
+
         public static string GetValue(string key) =>
             appConfiguration.AppSettings.Settings[key]?.Value;
+
+        public static string SecureKey => GetValue(Constants.SecureKeyParameterName);
+
+        public static string StorageFullPath => GetValue(Constants.StoragePathParameterName);
     }
 }

@@ -10,7 +10,7 @@ namespace SafeBox.ViewModels
     {
         #region Private Fields
 
-        private string _storageLocation = StaticResources.StorageFullPath;
+        private string _storageLocation = ConfigurationHandler.StorageFullPath;
 
         #endregion
 
@@ -40,9 +40,9 @@ namespace SafeBox.ViewModels
 
         private void Save()
         {
-            if (StaticResources.StorageFullPath != StorageLocation)
+            if (ConfigurationHandler.StorageFullPath != StorageLocation)
             {
-                ConfigurationHandler.AddOrUpdate(Constants.StoragePathParameterName, StorageLocation);
+                ConfigurationHandler.UpdateStorageFullPath(StorageLocation);
                 SettingsChanged?.Invoke(new(true));
             }
         }

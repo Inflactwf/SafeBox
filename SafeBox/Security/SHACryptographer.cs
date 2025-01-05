@@ -1,19 +1,28 @@
 ﻿using SafeBox.Extensions;
-using SafeBox.Interfaces;
 using System;
+using System.Security;
 using System.Security.Cryptography;
 
 namespace SafeBox.Security
 {
-    internal class SHACryptographer : ICryptographer<string>
+    internal static class SHACryptographer
     {
-        public string Decrypt(string data, string key = null) =>
-            throw new NotImplementedException();
-
-        public string Encrypt(string data, string key = null)
+        internal static string Encrypt(string data)
         {
-            using var sha256 = SHA256.Create();
-            return Convert.ToBase64String(sha256.ComputeHash(data.GetUTF8Bytes()));
+            if (data.IsNullOrWhiteSpace())
+                return string.Empty;
+
+            using var sha512 = SHA512.Create();
+            return Convert.ToBase64String(sha512.ComputeHash(data.GetUTF8Bytes()));
+        }
+
+        internal static string Encrypt(SecureString secureString)
+        {
+            if (secureString.IsNull())
+                return string.Empty;
+
+            using var sha512 = SHA512.Create();
+            return Convert.ToBase64String(secureString.GetHashBytes(sha512));
         }
     }
 }

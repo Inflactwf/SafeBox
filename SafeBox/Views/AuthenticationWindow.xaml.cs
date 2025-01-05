@@ -4,11 +4,11 @@ using System.Windows;
 namespace SafeBox.Views
 {
     /// <summary>
-    /// Interaction logic for ExportWindow.xaml
+    /// Interaction logic for AuthenticationWindow.xaml
     /// </summary>
-    public partial class ExportWindow : Window
+    public partial class AuthenticationWindow : Window
     {
-        public ExportWindow()
+        public AuthenticationWindow()
         {
             InitializeComponent();
             DataContextChanged += OnDataContextChanged;
@@ -16,7 +16,7 @@ namespace SafeBox.Views
 
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (e.NewValue is not ExportViewModel vm)
+            if (e.NewValue is not AuthenticationViewModel vm)
                 return;
 
             vm.RequestClose += ViewModel_RequestClose;

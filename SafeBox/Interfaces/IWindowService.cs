@@ -2,7 +2,7 @@
 
 namespace SafeBox.Interfaces
 {
-    internal interface IWindowService
+    public interface IWindowService
     {
         void ShowWindow<T>(object dataContext) where T : Window, new();
     }

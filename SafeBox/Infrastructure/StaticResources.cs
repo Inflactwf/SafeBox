@@ -1,5 +1,4 @@
 ﻿using SafeBox.Enums;
-using SafeBox.Handlers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +8,6 @@ namespace SafeBox.Infrastructure
 {
     public static class StaticResources
     {
-        public static string StorageFullPath => ConfigurationHandler.GetValue(Constants.StoragePathParameterName);
-
         public static List<ServiceType> ServiceTypes =
              Enum.GetValues(typeof(ServiceType))
              .OfType<ServiceType>()
@@ -19,13 +16,13 @@ namespace SafeBox.Infrastructure
         public static BitmapImage GetServiceImage(ServiceType serviceType) =>
             serviceType switch
             {
-                ServiceType.Application => new BitmapImage(new Uri("pack://application:,,,/Resources/Application.png")),
-                ServiceType.Steam => new BitmapImage(new Uri("pack://application:,,,/Resources/Steam.png")),
-                ServiceType.Origin => new BitmapImage(new Uri("pack://application:,,,/Resources/Origin.png")),
-                ServiceType.Uplay => new BitmapImage(new Uri("pack://application:,,,/Resources/Uplay.png")),
-                ServiceType.BattleNet => new BitmapImage(new Uri("pack://application:,,,/Resources/BattleNet.png")),
-                ServiceType.Epic => new BitmapImage(new Uri("pack://application:,,,/Resources/Epic.png")),
-                _ => new BitmapImage(new Uri("pack://application:,,,/Resources/Website.png")),
+                ServiceType.Application => new BitmapImage(new("pack://application:,,,/Resources/Application.png")),
+                ServiceType.Steam => new BitmapImage(new("pack://application:,,,/Resources/Steam.png")),
+                ServiceType.Origin => new BitmapImage(new("pack://application:,,,/Resources/Origin.png")),
+                ServiceType.Uplay => new BitmapImage(new("pack://application:,,,/Resources/Uplay.png")),
+                ServiceType.BattleNet => new BitmapImage(new("pack://application:,,,/Resources/BattleNet.png")),
+                ServiceType.Epic => new BitmapImage(new("pack://application:,,,/Resources/Epic.png")),
+                _ => new BitmapImage(new("pack://application:,,,/Resources/Website.png")),
             };
     }
 }

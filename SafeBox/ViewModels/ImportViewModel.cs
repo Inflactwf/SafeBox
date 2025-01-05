@@ -8,7 +8,6 @@ using SafeBox.Models;
 using SafeBox.Security;
 using System;
 using System.Collections.Generic;
-using System.Security;
 using System.Security.Cryptography;
 using System.Windows.Forms;
 
@@ -18,11 +17,7 @@ namespace SafeBox.ViewModels
     {
         #region Private Fields
 
-        private readonly ICryptographer<string> aesCryptographer;
-        private readonly ICryptographer<string> shaCryptographer;
-        private ICryptographer<SecureString> nativeCryptographer;
         private IFileHandler fileHandler;
-
         private string _location;
         private string _password;
 
@@ -30,12 +25,7 @@ namespace SafeBox.ViewModels
 
         public delegate void OnImportFinished(ImportFinishedEventArgs e);
         public event OnImportFinished ImportFinished;
-
-        public ImportViewModel()
-        {
-            aesCryptographer = new AesCryptographer();
-            shaCryptographer = new SHACryptographer();
-        }
+        public event Action RequestClose;
 
         #region Binding Properties
 
@@ -51,57 +41,47 @@ namespace SafeBox.ViewModels
 
         #endregion
 
-        public void AttachNativeCryptographer(ICryptographer<SecureString> cryptographer) =>
-            nativeCryptographer = cryptographer;
-
         private void RunImport()
         {
             try
             {
-                var encryptedPwd = shaCryptographer.Encrypt(Password);
+                var passwordShaHash = SHACryptographer.Encrypt(Password);
+                using var securePassword = SecurityHelper.ToSecureString(passwordShaHash);
                 var encryptedData = fileHandler.Read() ?? string.Empty;
-                var decryptedData = aesCryptographer.Decrypt(encryptedData, encryptedPwd);
+                var decryptedData = AesCryptographer.Decrypt(encryptedData, securePassword);
 
                 if (decryptedData.IsNullOrWhiteSpace())
                 {
-                    ImportFinished?.Invoke(new(false, Constants.DecryptedDataIsEmptyMessage, fileHandler.FileName, null));
+                    ImportFinished?.Invoke(new(false, "Decrypted data is empty or has been corrupted, the import process is stopped.", fileHandler.FileName, null));
                     return;
                 }
 
                 var decryptedCollection = decryptedData.JsonDeserializeObject<IEnumerable<StorageMember>>();
 
-                ReEncryptExtractingCollection(decryptedCollection, encryptedPwd);
+                SecurityHelper.DecomposeString(ref decryptedData);
                 ImportFinished?.Invoke(new(true, null, fileHandler.FileName, decryptedCollection));
             }
             catch (CryptographicException)
             {
                 Logger.Error($"{Constants.ImportLogMark}: An invalid password has been entered.");
 
-                MessageBox.Show(
-                    "Unable to import accounts:\n\nAn invalid password has been entered.",
+                MessageBox.Show($"An error occurred while importing accounts.\nReason: An invalid password has been entered.",
                     "SafeBox Export", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return;
             }
             catch (Exception ex)
             {
                 Logger.Error($"{Constants.ImportLogMark}: {ex.Message}\n{ex.StackTrace}");
 
-                if (MessageBox.Show(
-                    $"Unable to import accounts:\n\n{ex.Message}\n{ex.StackTrace}",
+                if (MessageBox.Show($"An error occurred while importing accounts.\nReason: {ex.Message}",
                     "SafeBox Export", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) == DialogResult.Retry)
                 {
                     RunImport();
                 }
             }
-        }
 
-        private void ReEncryptExtractingCollection(IEnumerable<IStorageMember> collection, string hash)
-        {
-            foreach (var member in collection)
-            {
-                var password = aesCryptographer.Decrypt(member.PasswordHash, hash);
-                ((StorageMember)member).PasswordHash = nativeCryptographer.Encrypt(password);
-                SecurityHelper.DecomposeString(ref password);
-            }
+            RequestClose?.Invoke();
         }
 
         private void SelectLocation()
