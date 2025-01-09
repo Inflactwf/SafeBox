@@ -150,7 +150,6 @@
     <Compile Include="EventArguments\EditingMemberFinishedEventArgs.cs" />
     <Compile Include="EventArguments\ImportFinishedEventArgs.cs" />
     <Compile Include="EventArguments\SettingsChangedEventArgs.cs" />
-    <Compile Include="Extensions\ICloneableExtensions.cs" />
     <Compile Include="Extensions\JsonExtensions.cs" />
     <Compile Include="Extensions\SecureStringExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />

@@ -110,6 +110,12 @@ namespace SafeBox.Services
             SourceCollection.Add(item);
         }
 
+        public void AddRange(IEnumerable<T> items)
+        {
+            foreach (var item in items)
+                Add(item);
+        }
+
         public void Set(IEnumerable<T> newCollection)
         {
             SearchCriteria = string.Empty;

@@ -84,6 +84,28 @@
                             </DockPanel>
                         </StackPanel>
                     </TabItem>
+                    <TabItem
+                        FocusVisualStyle="{x:Null}">
+                        <TabItem.Header>
+                            <TextBlock Foreground="White" Text="ACCOUNTS" />
+                        </TabItem.Header>
+                        <StackPanel
+                            Background="#FF1A1738">
+                            <DockPanel Margin="20,20,20,0">
+                                <Label Content="Reset all your stored accounts" Width="285"/>
+                                <Button
+                                    FocusVisualStyle="{x:Null}"
+                                    Content="Reset"
+                                    Width="87" Height="30" FontSize="10" HorizontalAlignment="Right">
+                                    <b:Interaction.Triggers>
+                                        <b:EventTrigger EventName="Click">
+                                            <b:InvokeCommandAction Command="{Binding ResetAccountsCommand}" />
+                                        </b:EventTrigger>
+                                    </b:Interaction.Triggers>
+                                </Button>
+                            </DockPanel>
+                        </StackPanel>
+                    </TabItem>
                 </TabControl>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,282,0,0" HorizontalAlignment="Right" VerticalAlignment="Bottom">

@@ -21,6 +21,7 @@ namespace SafeBox.ViewModels
 
         public RelayCommand ChangeStorageLocationCommand => new(SelectStorage);
         public RelayCommand SaveCommand => new(Save);
+        public RelayCommand ResetAccountsCommand => new(ResetAccounts);
 
         #endregion
 
@@ -43,7 +44,16 @@ namespace SafeBox.ViewModels
             if (ConfigurationHandler.StorageFullPath != StorageLocation)
             {
                 ConfigurationHandler.UpdateStorageFullPath(StorageLocation);
-                SettingsChanged?.Invoke(new(true));
+                SettingsChanged?.Invoke(new(true, false));
+            }
+        }
+
+        private void ResetAccounts()
+        {
+            if (MessageBox.Show("Are you sure you want to reset all your accounts?\nYou will lose all your personal data and this action cannot be reverted.",
+                "SafeBox Reset Confirmation", MessageBoxButtons.OKCancel, MessageBoxIcon.Question) == DialogResult.OK)
+            {
+                SettingsChanged?.Invoke(new(false, true));
             }
         }
     }

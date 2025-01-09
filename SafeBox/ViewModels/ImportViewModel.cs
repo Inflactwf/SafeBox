@@ -20,19 +20,21 @@ namespace SafeBox.ViewModels
         private IFileHandler fileHandler;
         private string _location;
         private string _password;
+        private bool _isMergeRequested;
+
+        #endregion
+
+        #region Binding Properties
+
+        public string Location { get => _location; set => Set(ref _location, value); }
+        public string Password { get => _password; set => Set(ref _password, value); }
+        public bool IsMergeRequested { get => _isMergeRequested; set => Set(ref _isMergeRequested, value); }
 
         #endregion
 
         public delegate void OnImportFinished(ImportFinishedEventArgs e);
         public event OnImportFinished ImportFinished;
         public event Action RequestClose;
-
-        #region Binding Properties
-
-        public string Location { get => _location; set => Set(ref _location, value); }
-        public string Password { get => _password; set => Set(ref _password, value); }
-
-        #endregion
 
         #region Commands
 
@@ -52,14 +54,14 @@ namespace SafeBox.ViewModels
 
                 if (decryptedData.IsNullOrWhiteSpace())
                 {
-                    ImportFinished?.Invoke(new(false, "Decrypted data is empty or has been corrupted, the import process is stopped.", fileHandler.FileName, null));
+                    ImportFinished?.Invoke(new(false, "Decrypted data is empty or has been corrupted, the import process is stopped.", fileHandler.FileName, null, IsMergeRequested));
                     return;
                 }
 
                 var decryptedCollection = decryptedData.JsonDeserializeObject<IEnumerable<StorageMember>>();
 
                 SecurityHelper.DecomposeString(ref decryptedData);
-                ImportFinished?.Invoke(new(true, null, fileHandler.FileName, decryptedCollection));
+                ImportFinished?.Invoke(new(true, null, fileHandler.FileName, decryptedCollection, IsMergeRequested));
             }
             catch (CryptographicException)
             {

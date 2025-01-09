@@ -42,6 +42,9 @@ namespace SafeBox.Handlers
         public static void AddEntry(IStorageMember entry) =>
             storageWorker.AddEntry((StorageMember)entry);
 
+        public static void AddEntries(IEnumerable<IStorageMember> entries) =>
+            storageWorker.AddEntries((IEnumerable<StorageMember>)entries);
+
         public static void ReplaceEntry(IStorageMember oldEntry, IStorageMember newEntry) =>
             storageWorker.ReplaceEntry((StorageMember)oldEntry, (StorageMember)newEntry);
 

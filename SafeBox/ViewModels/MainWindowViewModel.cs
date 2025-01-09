@@ -54,7 +54,7 @@ namespace SafeBox.ViewModels
 
         private void CopyToClipboard(string passwordHash)
         {
-            DecryptHashToInsecurePassword(passwordHash, out string insecurePassword);
+            TryDecryptHashToInsecurePassword(passwordHash, out string insecurePassword);
 
             try
             {
@@ -68,11 +68,14 @@ namespace SafeBox.ViewModels
 
         private async Task ShowPassword(IStorageMember member)
         {
-            DecryptHashToInsecurePassword(member.PasswordHash, out string insecurePassword);
+            TryDecryptHashToInsecurePassword(member.PasswordHash, out string insecurePassword);
 
             try
             {
-                member.DisplayInsecurePassword = string.Intern(insecurePassword);
+                member.DisplayInsecurePassword = insecurePassword.IsNullOrWhiteSpace()
+                    ? "UNKNOWN"
+                    : string.Intern(insecurePassword);
+
                 member.IsPasswordVisible = true;
                 await Task.Delay(Constants.PasswordShowTimeInMilliseconds);
             }
@@ -83,13 +86,13 @@ namespace SafeBox.ViewModels
             }
         }
 
-        private void DecryptHashToInsecurePassword(string passwordHash, out string insecurePassword)
+        private void TryDecryptHashToInsecurePassword(string passwordHash, out string insecurePassword)
         {
             using var key = SecurityHelper.TryGetSecureKeyAsSecureStringOrNull();
             using var securePassword = AesCryptographer.DecryptToSecureString(passwordHash, key);
 
             insecurePassword = securePassword.IsNull()
-                ? "UNKNOWN"
+                ? string.Empty
                 : SecurityHelper.SecureStringToString(securePassword);
         }
 
@@ -186,8 +189,16 @@ namespace SafeBox.ViewModels
         {
             if (e.IsSuccess)
             {
-                StorageHandler.OverwriteStorage(e.ImportedCollection);
-                SynchronizationService.Set(e.ImportedCollection);
+                if (e.IsMergeRequested)
+                {
+                    StorageHandler.AddEntries(e.ImportedCollection);
+                    SynchronizationService.AddRange(e.ImportedCollection);
+                }
+                else
+                {
+                    StorageHandler.OverwriteStorage(e.ImportedCollection);
+                    SynchronizationService.Set(e.ImportedCollection);
+                }
 
                 Logger.Info($"{Constants.ImportLogMark}: " +
                     $"{e.ImportedCollection.Count()} storage members were successfully imported from the file '{e.FileName}'.");
@@ -241,6 +252,13 @@ namespace SafeBox.ViewModels
                 SynchronizationService.Set(StorageHandler.GetEntries());
 
                 Logger.Info($"{Constants.SettingsLogMark}: The storage path has been changed '{StorageHandler.GetStoragePath()}'");
+            }
+            else if (e.IsStorageResetRequested)
+            {
+                identityService.ResetIdentity();
+
+                Logger.Info($"{Constants.SettingsLogMark}: The storage path has been changed '{StorageHandler.GetStoragePath()}'");
+                MessageBox.Show("All your accounts were successfully cleared!", "SafeBox Notification", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
