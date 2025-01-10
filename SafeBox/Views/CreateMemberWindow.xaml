@@ -62,7 +62,7 @@
                     md:HintAssist.IsFloating="False"
                     md:HintAssist.Foreground="White"
                     md:TextFieldAssist.HasClearButton="True"
-                    md:HintAssist.Hint="* Enter name of the resource..."
+                    md:HintAssist.Hint="* Enter a resource name or url..."
                     Foreground="White"
                     MaxLength="50"
                     VerticalAlignment="Center"

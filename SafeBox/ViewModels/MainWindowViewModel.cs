@@ -9,7 +9,9 @@ using SafeBox.Models;
 using SafeBox.Security;
 using SafeBox.Services;
 using SafeBox.Views;
+using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -43,6 +45,7 @@ namespace SafeBox.ViewModels
 
         public RelayCommand<string> CopyToClipboardCommand => new(CopyToClipboard);
         public RelayCommand<IStorageMember> ShowPasswordCommand => new(async (member) => await ShowPassword(member));
+        public RelayCommand OpenCommand => new(OpenResourceNameAsLink);
         public RelayCommand RemoveCommand => new(RemoveMember);
         public RelayCommand AddCommand => new(AddMember);
         public RelayCommand EditCommand => new(EditMember);
@@ -95,6 +98,9 @@ namespace SafeBox.ViewModels
                 ? string.Empty
                 : SecurityHelper.SecureStringToString(securePassword);
         }
+
+        private void OpenResourceNameAsLink() =>
+            Process.Start(SynchronizationService.SelectedItem.ResourceName.EnsureUrlHasProtocol());
 
         private void AddMember()
         {

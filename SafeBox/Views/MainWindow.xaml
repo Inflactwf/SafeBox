@@ -22,6 +22,7 @@
     </Window.DataContext>
 
     <Window.Resources>
+        <conv:ResourceUrlToBooleanConverter x:Key="ResourceUrlToBooleanConverter" />
         <conv:ServiceTypeToImageConverter x:Key="ServiceTypeToImageConverter" />
         <conv:StringToBooleanConverter x:Key="StringToBooleanConverter" />
         <conv:NullToBooleanConverter x:Key="NullToBooleanConverter" />
@@ -54,6 +55,21 @@
                 <ContextMenu
                     FocusVisualStyle="{x:Null}"
                     Background="#FF4A278A">
+                    <MenuItem
+                        IsEnabled="{Binding SynchronizationService.SelectedItem.ResourceName, Converter={StaticResource ResourceUrlToBooleanConverter}}"
+                        FocusVisualStyle="{x:Null}"
+                        Header="Open"
+                        Foreground="White">
+                        <MenuItem.Icon>
+                            <Image Source="/Resources/OpenKey.png" />
+                        </MenuItem.Icon>
+                        <b:Interaction.Triggers>
+                            <b:EventTrigger EventName="Click">
+                                <b:InvokeCommandAction
+                                    Command="{Binding OpenCommand}" />
+                            </b:EventTrigger>
+                        </b:Interaction.Triggers>
+                    </MenuItem>
                     <MenuItem
                         FocusVisualStyle="{x:Null}"
                         Header="Add"
