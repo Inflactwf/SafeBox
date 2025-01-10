@@ -36,9 +36,11 @@
             <GradientStop Color="#FF241048" Offset="1"/>
         </LinearGradientBrush>
     </Window.Background>
+
     <Grid>
         <ListBox
-            Margin="60,10,10,10"
+            x:Name="accountsBox"
+            Margin="62 7 7 7"
             Background="#7F150025"
             gong:DragDrop.IsDragSource="True"
             gong:DragDrop.IsDropTarget="True"
@@ -46,6 +48,12 @@
             gong:DragDrop.DropHandler="{Binding}"
             ItemsSource="{Binding SynchronizationService.ViewCollection, UpdateSourceTrigger=PropertyChanged}"
             SelectedItem="{Binding SynchronizationService.SelectedItem, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+
+            <ListBox.RenderTransform>
+                <TransformGroup>
+                    <TranslateTransform x:Name="accountsBoxTransform" />
+                </TransformGroup>
+            </ListBox.RenderTransform>
 
             <b:Interaction.Behaviors>
                 <lb:ListBoxAddingScrollBehavior IsScrollingToEndEnabled="True" />
@@ -122,7 +130,7 @@
                     <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                 </Style>
             </ListBox.ItemContainerStyle>
-            
+
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <VirtualizingStackPanel x:Name="itemsPanel" Orientation="Vertical">
@@ -382,20 +390,39 @@
                 </Style>
             </ListBox.Style>
         </ListBox>
-        <Border x:Name="sidePanelBorder"
-            HorizontalAlignment="Left" Width="55" BorderBrush="#FF6635D6" BorderThickness="0,0,1,0">
-            <StackPanel
-                Background="#F21E1729">
+        <Border
+            x:Name="sidePanelBorder"
+            HorizontalAlignment="Left"
+            Width="55"
+            BorderBrush="#FF6635D6"
+            BorderThickness="0 0 0 0">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" Direction="0" ShadowDepth="1"/>
+            </Border.Effect>
+            <StackPanel>
+                <StackPanel.Background>
+                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                        <GradientStop Color="#F90B192C"/>
+                        <GradientStop Color="#F9191919" Offset="1"/>
+                        <GradientStop Color="#F9331D2C" Offset="0.733"/>
+                        <GradientStop Color="#F92A004E" Offset="0.333"/>
+                    </LinearGradientBrush>
+                </StackPanel.Background>
                 <StackPanel.Triggers>
                     <EventTrigger RoutedEvent="UIElement.MouseEnter">
                         <BeginStoryboard>
                             <Storyboard>
-                                <DoubleAnimation 
-                                Storyboard.TargetName="sidePanelBorder"
-                                Storyboard.TargetProperty="Width"
-                                BeginTime="0:0:0.1"
-                                To="150"
-                                Duration="0:0:0.2" />
+                                <DoubleAnimation
+                                    Storyboard.TargetName="sidePanelBorder"
+                                    Storyboard.TargetProperty="Width"
+                                    To="150"
+                                    Duration="0:0:0.2" />
+                                
+                                <ThicknessAnimation
+                                    Storyboard.TargetName="accountsBox"
+                                    Storyboard.TargetProperty="Margin"
+                                    To="157 7 7 7"
+                                    Duration="0:0:0.2" />
                             </Storyboard>
                         </BeginStoryboard>
                     </EventTrigger>
@@ -403,92 +430,139 @@
                         <BeginStoryboard>
                             <Storyboard>
                                 <DoubleAnimation 
-                                Storyboard.TargetName="sidePanelBorder"
-                                Storyboard.TargetProperty="Width"
-                                BeginTime="0:0:0.1"
-                                To="55"
-                                Duration="0:0:0.2" />
+                                    Storyboard.TargetName="sidePanelBorder"
+                                    Storyboard.TargetProperty="Width"
+                                    To="55"
+                                    Duration="0:0:0.2" />
+                                
+                                <ThicknessAnimation
+                                    Storyboard.TargetName="accountsBox"
+                                    Storyboard.TargetProperty="Margin"
+                                    To="62 7 7 7"
+                                    Duration="0:0:0.2" />
                             </Storyboard>
                         </BeginStoryboard>
                     </EventTrigger>
                 </StackPanel.Triggers>
 
-                <StackPanel Orientation="Horizontal" Margin="0,15,0,0" HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
                     <Button
                         md:RippleAssist.IsCentered="True"
                         FocusVisualStyle="{x:Null}"
-                        Content="⇲"
-                        Margin="8,0,8,0"
-                        Padding="0,4,0,4"
-                        Width="39"
-                        Foreground="#DDFFFFFF">
+                        Foreground="#DDFFFFFF"
+                        Width="{Binding ElementName=sidePanelBorder, Path=ActualWidth}"
+                        HorizontalContentAlignment="Left"
+                        Padding="14,4,5,4">
+                        <Button.Style>
+                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignFlatButton}">
+                                <Setter Property="ContentTemplate">
+                                    <Setter.Value>
+                                        <DataTemplate>
+                                            <DockPanel>
+                                                <TextBlock Text="⇲" Width="30" Margin="0 0 15 0" FontSize="18" VerticalAlignment="Center" Foreground="#FFB169BD"/>
+                                                <TextBlock Text="IMPORT" FontSize="13" HorizontalAlignment="Stretch" VerticalAlignment="Center" FontWeight="Bold" />
+                                            </DockPanel>
+                                        </DataTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
                         <b:Interaction.Triggers>
                             <b:EventTrigger EventName="Click">
                                 <b:InvokeCommandAction Command="{Binding ShowImportCommand}" />
                             </b:EventTrigger>
                         </b:Interaction.Triggers>
                     </Button>
-                    <TextBlock
-                        TextWrapping="Wrap" Text="IMPORT" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal" Margin="0,15,0,0" HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
                     <Button
                         md:RippleAssist.IsCentered="True"
                         FocusVisualStyle="{x:Null}"
-                        Content="⇱"
-                        Margin="8,0,8,0"
-                        Padding="0,4,0,4"
-                        Width="39"
-                        Foreground="#DDFFFFFF">
+                        Foreground="#DDFFFFFF"
+                        Width="{Binding ElementName=sidePanelBorder, Path=ActualWidth}"
+                        HorizontalContentAlignment="Left"
+                        Padding="14,4,5,4">
+                        <Button.Style>
+                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignFlatButton}">
+                                <Setter Property="ContentTemplate">
+                                    <Setter.Value>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="⇱" Width="30" Margin="0 0 15 0" FontSize="18" Foreground="#FFA1B970" VerticalAlignment="Center"/>
+                                                <TextBlock Text="EXPORT" FontSize="13" VerticalAlignment="Center" FontWeight="Bold" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
                         <b:Interaction.Triggers>
                             <b:EventTrigger EventName="Click">
                                 <b:InvokeCommandAction Command="{Binding ShowExportCommand}" />
                             </b:EventTrigger>
                         </b:Interaction.Triggers>
                     </Button>
-                    <TextBlock
-                        TextWrapping="Wrap" Text="EXPORT" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,15,0,0">
+                <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
                     <Button
                         md:RippleAssist.IsCentered="True"
                         FocusVisualStyle="{x:Null}"
-                        Content="⚙"
-                        Margin="8,0,8,0"
-                        Padding="0,4,0,4"
-                        Width="39"
-                        Foreground="#DDFFFFFF">
+                        Foreground="#DDFFFFFF"
+                        Width="{Binding ElementName=sidePanelBorder, Path=ActualWidth}"
+                        HorizontalContentAlignment="Left"
+                        Padding="14,4,5,4">
+                        <Button.Style>
+                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignFlatButton}">
+                                <Setter Property="ContentTemplate">
+                                    <Setter.Value>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="⚙" Width="30" Margin="0 0 15 0" FontSize="18" Foreground="#FF8FBBBF" VerticalAlignment="Center" />
+                                                <TextBlock Text="SETTINGS" FontSize="13" VerticalAlignment="Center" FontWeight="Bold" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
                         <b:Interaction.Triggers>
                             <b:EventTrigger EventName="Click">
                                 <b:InvokeCommandAction Command="{Binding ShowSettingsCommand}" />
                             </b:EventTrigger>
                         </b:Interaction.Triggers>
                     </Button>
-
-                    <TextBlock
-                        TextWrapping="Wrap" Text="SETTINGS" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal" Margin="0,15,0,0" HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
                     <Button
                         md:RippleAssist.IsCentered="True"
                         FocusVisualStyle="{x:Null}"
-                        Content="❌"
-                        Foreground="#DDE4FF41"
-                        FontSize="13"
-                        Padding="0,4,0,4"
-                        VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
-                        Margin="8,0,8,0" Width="39">
+                        Padding="14,4,5,4"
+                        Foreground="#DDFFFFFF"
+                        Width="{Binding ElementName=sidePanelBorder, Path=ActualWidth}"
+                        HorizontalContentAlignment="Left">
+                        <Button.Style>
+                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignFlatButton}">
+                                <Setter Property="ContentTemplate">
+                                    <Setter.Value>
+                                        <DataTemplate>
+                                            <DockPanel>
+                                                <TextBlock Text="❌" Width="30" Margin="0 0 15 0" FontSize="18" VerticalAlignment="Center" Foreground="#FFF2FFA4"/>
+                                                <TextBlock Text="EXIT" FontSize="13" HorizontalAlignment="Stretch" VerticalAlignment="Center" FontWeight="Bold" />
+                                            </DockPanel>
+                                        </DataTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
                         <b:Interaction.Triggers>
                             <b:EventTrigger EventName="Click">
                                 <b:CallMethodAction TargetObject="{Binding ElementName=Window}" MethodName="Close" />
                             </b:EventTrigger>
                         </b:Interaction.Triggers>
                     </Button>
-                    <TextBlock
-                        TextWrapping="Wrap" Text="EXIT" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
                 </StackPanel>
             </StackPanel>
         </Border>

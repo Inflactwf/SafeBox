@@ -39,9 +39,18 @@ namespace SafeBox.Services
             {
                 if (!value.IsNullOrWhiteSpace())
                 {
-                    ViewCollection = new(SourceCollection.Where(x => x.ResourceName
-                        .ToLower()
-                        .Contains(value.ToLower())));
+                    ViewCollection = new(SourceCollection.Where(x =>
+                    {
+                        if (x.ResourceName.ToLower().Contains(value.ToLower()) ||
+                            (x.Description ?? string.Empty).ToLower().Contains(value.ToLower()) ||
+                            x.Login.ToLower().Contains(value.ToLower()))
+                        {
+                            return true;
+                        }
+
+                        return false;
+
+                    }));
                 }
                 else
                 {
