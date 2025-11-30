@@ -1,15 +1,14 @@
 ﻿using System.Windows;
 
-namespace SafeBox.Views
+namespace SafeBox.Views;
+
+/// <summary>
+/// Interaction logic for SettingsWindow.xaml
+/// </summary>
+public partial class SettingsWindow : Window
 {
-    /// <summary>
-    /// Interaction logic for SettingsWindow.xaml
-    /// </summary>
-    public partial class SettingsWindow : Window
+    public SettingsWindow()
     {
-        public SettingsWindow()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

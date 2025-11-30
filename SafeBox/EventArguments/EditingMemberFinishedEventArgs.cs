@@ -1,11 +1,10 @@
-﻿using SafeBox.Interfaces;
+﻿using SafeBox.Models;
 
-namespace SafeBox.EventArguments
+namespace SafeBox.EventArguments;
+
+public class EditingMemberFinishedEventArgs(bool hasChanges, StorageMember sourceMember, StorageMember editedMember)
 {
-    public class EditingMemberFinishedEventArgs(bool hasChanges, IStorageMember sourceMember, IStorageMember editedMember)
-    {
-        public bool HasChanges { get; set; } = hasChanges;
-        public IStorageMember SourceMember { get; set; } = sourceMember;
-        public IStorageMember EditedMember { get; set; } = editedMember;
-    }
+    public bool HasChanges { get; set; } = hasChanges;
+    public StorageMember SourceMember { get; set; } = sourceMember;
+    public StorageMember EditedMember { get; set; } = editedMember;
 }

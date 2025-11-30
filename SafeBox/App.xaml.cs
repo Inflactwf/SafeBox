@@ -1,9 +1,8 @@
 ﻿using System.Windows;
 
-namespace SafeBox
-{
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
-    public partial class App : Application { }
-}
+namespace SafeBox;
+
+/// <summary>
+/// Interaction logic for App.xaml
+/// </summary>
+public partial class App : Application { }

@@ -10,63 +10,57 @@ using System.Linq;
 using System.Security;
 using System.Windows;
 
-namespace SafeBox.Services
+namespace SafeBox.Services;
+
+public sealed class IdentityService(IWindowService windowService, StorageHandler storageHandler,
+    ViewSynchronizationService<StorageMember> synchronizationService)
 {
-    public sealed class IdentityService(IWindowService windowService, ViewSynchronizationService<IStorageMember> synchronizationService)
+    public void Init()
     {
-        #region Private Fields
-
-        private readonly IWindowService _windowService = windowService;
-        private readonly ViewSynchronizationService<IStorageMember> _synchronizationService = synchronizationService;
-
-        #endregion
-
-        public void Init()
+        if (!IsCurrentMachineVerified())
         {
-            if (!IsCurrentMachineVerified())
-            {
-                using var authenticationViewModel = new AuthenticationViewModel(this);
-                _windowService.ShowWindow<AuthenticationWindow>(authenticationViewModel);
+            using var authenticationViewModel = new AuthenticationViewModel(this);
+            windowService.ShowWindow<AuthenticationWindow>(authenticationViewModel);
 
-                if (!authenticationViewModel.IsAuthenticated)
-                {
-                    Logger.Fatal($"{Constants.GeneralLogMark}: authentication failed, the program exited.");
-                    Application.Current.Shutdown();
-                }
+            if (!authenticationViewModel.IsAuthenticated)
+            {
+                Logger.Fatal($"{Constants.GeneralLogMark}: authentication failed, the program exited.");
+                Application.Current.Shutdown();
             }
         }
+    }
 
-        public bool IsCurrentMachineVerified()
-        {
-            using var secureKey = SecurityHelper.TryGetSecureKeyAsSecureStringOrNull();
-            return !secureKey.IsNull();
-        }
+    public bool IsCurrentMachineVerified()
+    {
+        using var secureKey = SecurityHelper.TryGetSecureKeyAsSecureStringOrNull();
+        return !secureKey.IsNull();
+    }
 
-        public bool IsKeyValid(SecureString key = null)
+    public bool IsKeyValid(SecureString key = null)
+    {
+        try
         {
-            try
+            if (!synchronizationService.HasElements)
+                return true;
+
+            using var sKey = key ?? SecurityHelper.TryGetSecureKeyAsSecureStringOrNull();
+
+            return synchronizationService.GetSourceCollection().All(x =>
             {
-                if (!_synchronizationService.HasElements)
-                    return true;
-
-                using var sKey = key ?? SecurityHelper.TryGetSecureKeyAsSecureStringOrNull();
-
-                return _synchronizationService.SourceCollection.All(x =>
-                {
-                    using var passwordContainer = AesCryptographer.DecryptToSecureString(x.PasswordHash, sKey);
-                    return !passwordContainer.IsNull();
-                });
-            }
-            catch
-            {
-                return false;
-            }
+                using var passwordContainer = AesCryptographer.DecryptToSecureString(x.PasswordHash, sKey);
+                return !passwordContainer.IsNull();
+            });
         }
-
-        public void ResetIdentity()
+        catch
         {
-            StorageHandler.OverwriteStorage(Enumerable.Empty<StorageMember>());
-            _synchronizationService.Clear();
+            return false;
         }
+    }
+
+    public void ResetIdentity()
+    {
+        // ReSharper disable once UseCollectionExpression
+        storageHandler.OverwriteStorage(Enumerable.Empty<StorageMember>());
+        synchronizationService?.Clear();
     }
 }

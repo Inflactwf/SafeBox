@@ -113,7 +113,25 @@
                     md:TextFieldAssist.HasClearButton="True"
                     md:HintAssist.Hint="Enter a new description of the resource..."
                     Foreground="White"
-                    MaxLength="70" Margin="20,0,20,0" Width="449" />
+                    MaxLength="70" Margin="20,0,0,0" Width="309" Height="50" VerticalAlignment="Center" />
+                <ComboBox
+                    FocusVisualStyle="{x:Null}"
+                    Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                    ItemsSource="{x:Static i:StaticResources.Categories}"
+                    SelectedItem="{Binding Member.Category, UpdateSourceTrigger=PropertyChanged}"
+                    md:ComboBoxAssist.ShowSelectedItem="True"
+                    md:HintAssist.Foreground="White"
+                    md:HintAssist.Hint="Category"
+                    md:HintAssist.IsFloating="False"
+                    Foreground="White"
+                    Width="130"
+                    Padding="16,16,12,16" Height="50" Margin="10,0,0,0">
+                    <ComboBox.ItemContainerStyle>
+                        <Style TargetType="{x:Type ComboBoxItem}" BasedOn="{StaticResource MaterialDesignComboBoxItemStyle}">
+                            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                        </Style>
+                    </ComboBox.ItemContainerStyle>
+                </ComboBox>
             </StackPanel>
 
             <StackPanel Margin="0,150,0,64" >

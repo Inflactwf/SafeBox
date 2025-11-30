@@ -3,14 +3,13 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace SafeBox.Converters
-{
-    public class StringToBooleanConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
-            !(value as string).IsNullOrWhiteSpace();
+namespace SafeBox.Converters;
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
-            throw new NotImplementedException();
-    }
+public class StringToBooleanConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        !(value as string).IsNull();
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        throw new NotImplementedException();
 }

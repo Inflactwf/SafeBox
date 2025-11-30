@@ -3,35 +3,34 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media.Animation;
 
-namespace SafeBox.Behaviors
+namespace SafeBox.Behaviors;
+
+public class WindowClosingBehavior : Behavior<Window>
 {
-    public class WindowClosingBehavior : Behavior<Window>
+    public static readonly DependencyProperty StoryboardProperty =
+        DependencyProperty.Register(nameof(Storyboard), typeof(Storyboard), typeof(WindowClosingBehavior), new PropertyMetadata(default(Storyboard)));
+
+    public Storyboard Storyboard
     {
-        public static readonly DependencyProperty StoryboardProperty =
-            DependencyProperty.Register("Storyboard", typeof(Storyboard), typeof(WindowClosingBehavior), new PropertyMetadata(default(Storyboard)));
+        get => (Storyboard)GetValue(StoryboardProperty);
+        set => SetValue(StoryboardProperty, value);
+    }
 
-        public Storyboard Storyboard
-        {
-            get => (Storyboard)GetValue(StoryboardProperty);
-            set => SetValue(StoryboardProperty, value);
-        }
+    protected override void OnAttached()
+    {
+        base.OnAttached();
+        AssociatedObject.Closing += OnWindowClosing;
+    }
 
-        protected override void OnAttached()
-        {
-            base.OnAttached();
-            AssociatedObject.Closing += OnWindowClosing;
-        }
+    private void OnWindowClosing(object sender, CancelEventArgs e)
+    {
+        if (Storyboard == null)
+            return;
 
-        private void OnWindowClosing(object sender, CancelEventArgs e)
-        {
-            if (Storyboard == null)
-                return;
+        e.Cancel = true;
+        AssociatedObject.Closing -= OnWindowClosing;
 
-            e.Cancel = true;
-            AssociatedObject.Closing -= OnWindowClosing;
-
-            Storyboard.Completed += (o, a) => AssociatedObject.Close();
-            Storyboard.Begin(AssociatedObject);
-        }
+        Storyboard.Completed += (o, a) => AssociatedObject.Close();
+        Storyboard.Begin(AssociatedObject);
     }
 }

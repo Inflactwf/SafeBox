@@ -1,15 +1,14 @@
 ﻿using System.Windows;
 
-namespace SafeBox.Views
+namespace SafeBox.Views;
+
+/// <summary>
+/// Interaction logic for CreateMemberWindow.xaml
+/// </summary>
+public partial class CreateMemberWindow : Window
 {
-    /// <summary>
-    /// Interaction logic for CreateMemberWindow.xaml
-    /// </summary>
-    public partial class CreateMemberWindow : Window
+    public CreateMemberWindow()
     {
-        public CreateMemberWindow()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

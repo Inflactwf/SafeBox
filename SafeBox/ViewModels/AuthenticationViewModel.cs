@@ -6,105 +6,104 @@ using System;
 using System.Security;
 using System.Windows;
 
-namespace SafeBox.ViewModels
+namespace SafeBox.ViewModels;
+
+public class AuthenticationViewModel : ViewModelBase, IDisposable
 {
-    public class AuthenticationViewModel : ViewModelBase, IDisposable
+    #region Private Fields
+
+    private readonly IdentityService identityService;
+
+    private SecureString _password;
+    private bool _isDisposed;
+
+    public SecureString Password { get => _password; set => Set(ref _password, value); }
+
+    #endregion
+
+    #region Public Properties
+
+    public bool IsAuthenticated { get; private set; }
+
+    #endregion
+
+    public event Action RequestClose;
+
+    public AuthenticationViewModel() { }
+
+    public AuthenticationViewModel(IdentityService identityService) =>
+        this.identityService = identityService;
+
+    #region Commands
+
+    public RelayCommand ValidateCommand => new(Validate);
+
+    #endregion
+
+    private void Validate()
     {
-        #region Private Fields
+        var shaHash = SHACryptographer.Encrypt(Password);
+        using var key = SecurityHelper.ToSecureString(shaHash);
+        var encryptedKey = DPAPICryptographer.Encrypt(key);
 
-        private readonly IdentityService identityService;
-
-        private SecureString _password;
-        private bool _isDisposed;
-
-        public SecureString Password { get => _password; set => Set(ref _password, value); }
-
-        #endregion
-
-        #region Public Properties
-
-        public bool IsAuthenticated { get; private set; }
-
-        #endregion
-
-        public event Action RequestClose;
-
-        public AuthenticationViewModel() { }
-
-        public AuthenticationViewModel(IdentityService identityService) =>
-            this.identityService = identityService;
-
-        #region Commands
-
-        public RelayCommand ValidateCommand => new(Validate);
-
-        #endregion
-
-        private void Validate()
+        if (identityService.IsKeyValid(key))
         {
-            var shaHash = SHACryptographer.Encrypt(Password);
-            using var key = SecurityHelper.ToSecureString(shaHash);
-            var encryptedKey = DPAPICryptographer.Encrypt(key);
+            UpdateKey(encryptedKey);
+            return;
+        }
 
-            if (identityService.IsKeyValid(key))
+        ShowPasswordIncorrectMessage(encryptedKey);
+    }
+
+    private void ShowPasswordIncorrectMessage(string encryptedKey)
+    {
+        switch (MessageBox.Show(
+            $"""
+             The password you have entered is incorrect and does not match the current account storage.
+
+
+             If you want to restore your accounts, click «Yes» and enter the correct password.
+
+             If you want to set this as a new password and reset your previous accounts, click «No».
+
+             If you want to stop working with the program, click «Cancel».
+             """,
+            "SafeBox Identity Service",
+            MessageBoxButton.YesNoCancel, MessageBoxImage.Error))
+        {
+            case MessageBoxResult.No:
             {
+                identityService.ResetIdentity();
                 UpdateKey(encryptedKey);
-                return;
+                break;
             }
-
-            ShowPasswordIncorrectMessage(encryptedKey);
         }
+    }
 
-        private void ShowPasswordIncorrectMessage(string encryptedKey)
+    private void UpdateKey(string encryptedKey)
+    {
+        ConfigurationHandler.UpdateSecureKey(encryptedKey);
+        IsAuthenticated = true;
+        RequestClose?.Invoke();
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_isDisposed)
         {
-            switch (MessageBox.Show(
-                $"""
-                The password you have entered is incorrect and does not match the current account storage.
-
-
-                If you want to restore your accounts, click «Yes» and enter the correct password.
-
-                If you want to set this as a new password and reset your previous accounts, click «No».
-
-                If you want to stop working with the program, click «Cancel».
-                """,
-                "SafeBox Identity Service",
-                MessageBoxButton.YesNoCancel, MessageBoxImage.Error))
+            if (disposing)
             {
-                case MessageBoxResult.No:
-                    {
-                        identityService.ResetIdentity();
-                        UpdateKey(encryptedKey);
-                        break;
-                    }
+                _password?.Dispose();
+                _password = null;
             }
-        }
 
-        private void UpdateKey(string encryptedKey)
-        {
-            ConfigurationHandler.UpdateSecureKey(encryptedKey);
-            IsAuthenticated = true;
-            RequestClose?.Invoke();
+            _isDisposed = true;
         }
+    }
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_isDisposed)
-            {
-                if (disposing)
-                {
-                    _password?.Dispose();
-                    _password = null;
-                }
-
-                _isDisposed = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 }

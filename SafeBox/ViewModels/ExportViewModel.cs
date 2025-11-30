@@ -8,106 +8,106 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
+using SafeBox.Models;
 
-namespace SafeBox.ViewModels
+namespace SafeBox.ViewModels;
+
+public class ExportViewModel : ViewModelBase
 {
-    public class ExportViewModel : ViewModelBase
+    #region Private Fields
+
+    private IFileHandler _fileHandler;
+    private readonly IEnumerable<StorageMember> _collection = [];
+
+    private string _location;
+    private string _password = string.Empty;
+    private string _repeatedPassword = string.Empty;
+
+    #endregion
+
+    #region Binding Properties
+
+    public string Password { get => _password; set => Set(ref _password, value); }
+    public string RepeatedPassword { get => _repeatedPassword; set => Set(ref _repeatedPassword, value); }
+    public string Location { get => _location; set => Set(ref _location, value); }
+
+    #endregion
+
+    public event Action RequestClose;
+
+    public ExportViewModel() { }
+
+    public ExportViewModel(IEnumerable<StorageMember> collection)
     {
-        #region Private Fields
+        _collection = collection;
+    }
 
-        private IFileHandler fileHandler;
-        private IEnumerable<IStorageMember> collection = [];
+    #region Commands
 
-        private string _location;
-        private string _password = string.Empty;
-        private string _repeatedPassword = string.Empty;
+    public RelayCommand RunExportCommand => new(RunExport);
+    public RelayCommand SelectLocationCommand => new(SelectLocation);
 
-        #endregion
+    #endregion
 
-        #region Binding Properties
-
-        public string Password { get => _password; set => Set(ref _password, value); }
-        public string RepeatedPassword { get => _repeatedPassword; set => Set(ref _repeatedPassword, value); }
-        public string Location { get => _location; set => Set(ref _location, value); }
-
-        #endregion
-
-        public event Action RequestClose;
-
-        public ExportViewModel() { }
-
-        public ExportViewModel(IEnumerable<IStorageMember> collection)
+    private bool PerformFieldsCheck()
+    {
+        if (_password != _repeatedPassword)
         {
-            this.collection = collection;
+            MessageBox.Show("The password and repeat password do not match. Fill all the required fields correctly and try again.",
+                "SafeBox Export", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            return false;
         }
 
-        #region Commands
+        return true;
+    }
 
-        public RelayCommand RunExportCommand => new(RunExport);
-        public RelayCommand SelectLocationCommand => new(SelectLocation);
+    private void RunExport()
+    {
+        if (!PerformFieldsCheck())
+            return;
 
-        #endregion
-
-        private bool PerformFieldsCheck()
+        try
         {
-            if (_password != _repeatedPassword)
-            {
-                MessageBox.Show("The password and repeat password do not match. Fill all the required fields correctly and try again.",
-                    "SafeBox Export", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            using var passwordKey = SecurityHelper.ToSecureString(SHACryptographer.Encrypt(Password));
+            var encryptedData = AesCryptographer.Encrypt(_collection.JsonSerializeObject(), passwordKey);
 
-                return false;
-            }
+            if (encryptedData.IsNull())
+                throw new Exception("Encrypted data is null or empty.");
 
-            return true;
-        }
+            _fileHandler.Write(encryptedData);
 
-        private void RunExport()
-        {
-            if (!PerformFieldsCheck())
-                return;
-
-            try
-            {
-                using var passwordKey = SecurityHelper.ToSecureString(SHACryptographer.Encrypt(Password));
-                var encryptedData = AesCryptographer.Encrypt(collection.JsonSerializeObject(), passwordKey);
-
-                if (encryptedData.IsNullOrWhiteSpace())
-                    throw new Exception("Encrypted data is null or empty.");
-
-                fileHandler.Write(encryptedData);
-
-                var logMsg = $"Accounts were successfully exported to the file '{fileHandler.FileName}'.";
+            var logMsg = $"Accounts were successfully exported to the file '{_fileHandler.FileName}'.";
                 
-                Logger.Info($"{Constants.ExportLogMark}: {logMsg}");
-                MessageBox.Show(logMsg, "SafeBox Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                Logger.Error($"{Constants.ExportLogMark}: {ex.Message}\n{ex.StackTrace}");
+            Logger.Info($"{Constants.ExportLogMark}: {logMsg}");
+            MessageBox.Show(logMsg, "SafeBox Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"{Constants.ExportLogMark}: {ex.Message}\n{ex.StackTrace}");
 
-                if (MessageBox.Show($"An error occurred while exporting accounts.\nReason: {ex.Message}",
+            if (MessageBox.Show($"An error occurred while exporting accounts.\nReason: {ex.Message}",
                     "SafeBox Export", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) == DialogResult.Retry)
-                {
-                    RunExport();
-                }
+            {
+                RunExport();
             }
-
-            RequestClose?.Invoke();
         }
 
-        private void SelectLocation()
-        {
-            var dialog = new FolderBrowserDialog()
-            {
-                SelectedPath = AppDomain.CurrentDomain.BaseDirectory,
-                ShowNewFolderButton = true,
-            };
+        RequestClose?.Invoke();
+    }
 
-            if (dialog.ShowDialog() == DialogResult.OK)
-            {
-                Location = dialog.SelectedPath.Replace(Constants.Space, Constants.NonBreakingSpace);
-                fileHandler = new FileHandler(Path.Combine(Location, $"safebox_backup_{DateTime.Now:dd-MM-yyyy}.sbb"));
-            }
+    private void SelectLocation()
+    {
+        var dialog = new FolderBrowserDialog()
+        {
+            SelectedPath = AppDomain.CurrentDomain.BaseDirectory,
+            ShowNewFolderButton = true,
+        };
+
+        if (dialog.ShowDialog() == DialogResult.OK)
+        {
+            Location = dialog.SelectedPath.Replace(Constants.Space, Constants.NonBreakingSpace);
+            _fileHandler = new FileHandler(Path.Combine(Location, $"safebox_backup_{DateTime.Now:dd-MM-yyyy}.sbb"));
         }
     }
 }

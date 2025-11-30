@@ -1,10 +1,9 @@
-﻿namespace SafeBox.Interfaces
+﻿namespace SafeBox.Interfaces;
+
+public interface IFileHandler
 {
-    public interface IFileHandler
-    {
-        string Read();
-        void Write(string text);
-        public string FileName { get; }
-        public string FullFileName { get; }
-    }
+    string Read();
+    void Write(string text);
+    public string FileName { get; }
+    public string FullFileName { get; }
 }

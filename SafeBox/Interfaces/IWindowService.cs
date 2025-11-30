@@ -1,9 +1,8 @@
 ﻿using System.Windows;
 
-namespace SafeBox.Interfaces
+namespace SafeBox.Interfaces;
+
+public interface IWindowService
 {
-    public interface IWindowService
-    {
-        void ShowWindow<T>(object dataContext) where T : Window, new();
-    }
+    void ShowWindow<T>(object dataContext) where T : Window, new();
 }

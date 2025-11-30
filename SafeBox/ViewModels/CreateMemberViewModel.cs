@@ -1,46 +1,36 @@
 ﻿using SafeBox.Commands;
 using SafeBox.EventArguments;
-using SafeBox.Interfaces;
 using SafeBox.Models;
 using SafeBox.Security;
 
-namespace SafeBox.ViewModels
+namespace SafeBox.ViewModels;
+
+public class CreateMemberViewModel : ViewModelBase
 {
-    public class CreateMemberViewModel : ViewModelBase
+    #region Binding Properties
+
+    public StorageMember Member { get; } = new(); // Finish this when we got a different credential types
+
+    #endregion
+
+    #region Commands
+
+    public RelayCommand CreateCommand => new(CreateMember);
+
+    #endregion
+
+    public delegate void OnCreatingMemberFinished(CreatingMemberFinishedEventArgs e);
+    public event OnCreatingMemberFinished CreatingFinished;
+
+    private void CreateMember()
     {
-        #region Private Fields
+        EncryptStorageMember();
+        CreatingFinished?.Invoke(new(Member));
+    }
 
-        private IStorageMember _member = new StorageMember();
-
-        #endregion
-
-        #region Binding Properties
-
-        public IStorageMember Member => _member;
-
-        #endregion
-
-        #region Commands
-
-        public RelayCommand CreateCommand => new(CreateMember);
-
-        #endregion
-
-        public delegate void OnCreatingMemberFinished(CreatingMemberFinishedEventArgs e);
-        public event OnCreatingMemberFinished CreatingFinished;
-
-        private void CreateMember()
-        {
-            EncryptStorageMember();
-            CreatingFinished?.Invoke(new(Member));
-        }
-
-        private void EncryptStorageMember()
-        {
-            var storageMember = Member as StorageMember;
-
-            using var key = SecurityHelper.TryGetSecureKeyAsSecureStringOrNull();
-            storageMember.PasswordHash = AesCryptographer.Encrypt(storageMember.PasswordHash, key);
-        }
+    private void EncryptStorageMember()
+    {
+        using var key = SecurityHelper.TryGetSecureKeyAsSecureStringOrNull();
+        Member.PasswordHash = AesCryptographer.Encrypt(Member.PasswordHash, key);
     }
 }

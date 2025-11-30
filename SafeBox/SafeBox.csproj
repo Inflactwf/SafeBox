@@ -136,9 +136,12 @@
     <Compile Include="Behaviors\ListBoxAddingScrollBehavior.cs" />
     <Compile Include="Behaviors\PasswordBoxSecureBehavior.cs" />
     <Compile Include="Behaviors\SearchFocusBehavior.cs" />
+    <Compile Include="Behaviors\SideCategoryBehavior.cs" />
     <Compile Include="Behaviors\WindowClosingBehavior.cs" />
     <Compile Include="Commands\GenericRelayCommand.cs" />
     <Compile Include="Commands\RelayCommand.cs" />
+    <Compile Include="Converters\CategoryToBooleanConverter.cs" />
+    <Compile Include="Converters\CollectionToSideCategoryCountConverter.cs" />
     <Compile Include="Converters\SecureStringToBooleanConverter.cs" />
     <Compile Include="Converters\ResourceUrlToBooleanConverter.cs" />
     <Compile Include="Converters\StringToBooleanMultiConverter.cs" />
@@ -146,6 +149,8 @@
     <Compile Include="Converters\StringToBooleanConverter.cs" />
     <Compile Include="Converters\ServiceTypeToImageConverter.cs" />
     <Compile Include="Converters\ZeroCountToVisibilityConverter.cs" />
+    <Compile Include="Enums\Category.cs" />
+    <Compile Include="Enums\CredentialType.cs" />
     <Compile Include="Enums\ServiceType.cs" />
     <Compile Include="EventArguments\CreatingMemberFinishedEventArgs.cs" />
     <Compile Include="EventArguments\EditingMemberFinishedEventArgs.cs" />
@@ -165,6 +170,7 @@
     <Compile Include="Interfaces\IStorageMember.cs" />
     <Compile Include="Interfaces\IWindowService.cs" />
     <Compile Include="Interfaces\IFileHandler.cs" />
+    <Compile Include="Models\StorageMember.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -175,7 +181,6 @@
     <Compile Include="ViewModels\AuthenticationViewModel.cs" />
     <Compile Include="ViewModels\EditMemberViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
-    <Compile Include="Models\StorageMember.cs" />
     <Compile Include="Security\DPAPICryptographer.cs" />
     <Compile Include="Security\SecurityHelper.cs" />
     <Compile Include="Security\AesCryptographer.cs" />
@@ -277,6 +282,7 @@
   <ItemGroup>
     <Resource Include="Resources\OpenKey.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\MaterialDesignThemes.5.0.0\build\MaterialDesignThemes.targets" Condition="Exists('..\packages\MaterialDesignThemes.5.0.0\build\MaterialDesignThemes.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

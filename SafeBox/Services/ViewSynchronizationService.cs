@@ -1,151 +1,176 @@
-﻿using SafeBox.Extensions;
-using SafeBox.Interfaces;
+﻿using SafeBox.Enums;
+using SafeBox.Extensions;
+using SafeBox.Models;
 using SafeBox.ViewModels;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using System.Windows.Data;
 
-namespace SafeBox.Services
+namespace SafeBox.Services;
+
+public sealed class ViewSynchronizationService<T> : ViewModelBase
+    where T : StorageMember
 {
-    public sealed class ViewSynchronizationService<T>(IEnumerable<T> collection) : ViewModelBase where T : IStorageMember
+    #region Private Fields
+
+    private string _searchCriteria = string.Empty;
+    private T _selectedItem;
+    private Category _category;
+    private ICollectionView _filteredViewCollection;
+
+    public ViewSynchronizationService(IEnumerable<T> collection)
     {
-        #region Private Fields
+        Set(collection);
+    }
 
-        private ObservableCollection<T> _viewCollection = new(collection);
-        private ObservableCollection<T> _sourceCollection = new(collection);
-        private T _selectedItem;
-        private string _searchCriteria = string.Empty;
+    #endregion
 
-        #endregion
+    public ViewSynchronizationService() : this([]) { }
 
-        public ViewSynchronizationService() : this([]) { }
+    #region Public Properties
 
-        #region Public Properties
+    public ICollectionView FilteredViewCollection
+    {
+        get => _filteredViewCollection;
+        private set => Set(ref _filteredViewCollection, value);
+    }
 
-        public ObservableCollection<T> ViewCollection { get => _viewCollection; private set => Set(ref _viewCollection, value); }
+    public T SelectedItem
+    {
+        get => _selectedItem;
+        set => Set(ref _selectedItem, value);
+    }
 
-        public ObservableCollection<T> SourceCollection { get => _sourceCollection; private set => Set(ref _sourceCollection, value); }
-
-        public T SelectedItem { get => _selectedItem; set => Set(ref _selectedItem, value); }
-
-        public int Count => _sourceCollection.Count;
-
-        public bool HasElements => Count > 0;
-
-        public string SearchCriteria
+    public string SearchCriteria
+    {
+        get => _searchCriteria;
+        set
         {
-            get => _searchCriteria;
-            set
-            {
-                if (!value.IsNullOrWhiteSpace())
-                {
-                    ViewCollection = new(SourceCollection.Where(x =>
-                    {
-                        if (x.ResourceName.ToLower().Contains(value.ToLower()) ||
-                            (x.Description ?? string.Empty).ToLower().Contains(value.ToLower()) ||
-                            x.Login.ToLower().Contains(value.ToLower()))
-                        {
-                            return true;
-                        }
-
-                        return false;
-
-                    }));
-                }
-                else
-                {
-                    ViewCollection = new(SourceCollection);
-                }
-
-                Set(ref _searchCriteria, value);
-            }
-        }
-
-        #endregion
-
-        public void Move(T source, T target)
-        {
-            MoveInternal(source, target, ViewCollection);
-            MoveInternal(source, target, SourceCollection);
-        }
-
-        private void MoveInternal(T source, T target, ObservableCollection<T> collection)
-        {
-            if (source == null || target == null)
-                return;
-
-            if (collection == null)
-                return;
-
-            var sourceIndex = collection.IndexOf(source);
-            var targetIndex = collection.IndexOf(target);
-
-            if (sourceIndex >= 0 || targetIndex >= 0)
-                collection.Move(sourceIndex, targetIndex);
-        }
-
-        public void Replace(T oldElement, T newElement)
-        {
-            ReplaceInternal(oldElement, newElement, ViewCollection);
-            ReplaceInternal(oldElement, newElement, SourceCollection);
-        }
-
-        private void ReplaceInternal(T oldElement, T newElement, ObservableCollection<T> collection)
-        {
-            if (oldElement == null || newElement == null)
-                return;
-
-            var oldIndex = collection.IndexOf(oldElement);
-
-            if (oldIndex >= 0)
-                collection[oldIndex] = newElement;
-        }
-
-        public void Remove(T item)
-        {
-            ViewCollection.Remove(item);
-            SourceCollection.Remove(item);
-        }
-
-        public void Clear()
-        {
-            ViewCollection.Clear();
-            SourceCollection.Clear();
-        }
-
-        public void Add(T item)
-        {
-            ViewCollection.Add(item);
-            SourceCollection.Add(item);
-        }
-
-        public void AddRange(IEnumerable<T> items)
-        {
-            foreach (var item in items)
-                Add(item);
-        }
-
-        public void Set(IEnumerable<T> newCollection)
-        {
-            SearchCriteria = string.Empty;
-            ViewCollection = new(newCollection);
-            SourceCollection = new(newCollection);
-        }
-
-        public ObservableCollection<T> CloneCollection()
-        {
-            var collection = new ObservableCollection<T>();
-
-            foreach (var member in SourceCollection)
-                collection.Add((T)member.Clone());
-
-            return collection;
-        }
-
-        public IEnumerable<R> GetCollectionOfExplicitType<R>() where R : class
-        {
-            foreach (var member in SourceCollection)
-                yield return member as R;
+            Set(ref _searchCriteria, value);
+            FilteredViewCollection.Refresh();
         }
     }
+
+    public Category Category
+    {
+        get => _category;
+        set
+        {
+            Set(ref _category, value);
+            FilteredViewCollection.Refresh();
+        }
+    }
+
+    public bool HasElements => !FilteredViewCollection.IsEmpty;
+
+    #endregion
+
+    public void Move(T source, T target)
+    {
+        var collection = GetSourceCollection();
+        var indexes = GetMoveIndexes(source, target, collection);
+
+        if (!indexes.HasValue)
+            return;
+
+        collection.RemoveAt(indexes.Value.sourceIndex);
+        collection.Insert(indexes.Value.targetIndex, source);
+        FilteredViewCollection.Refresh();
+    }
+
+    private static (int sourceIndex, int targetIndex)? GetMoveIndexes(T source, T target, IList<T> list)
+    {
+        if (source == null || target == null)
+            return null;
+
+        if (list == null || list.Count == 0)
+            return null;
+
+        var sourceIndex = list.IndexOf(source);
+        var targetIndex = list.IndexOf(target);
+
+        return sourceIndex >= 0 && targetIndex >= 0
+            ? new(sourceIndex, targetIndex)
+            : null;
+    }
+
+    public void Replace(T oldElement, T newElement)
+    {
+        var collection = GetSourceCollection();
+
+        if (oldElement == null || newElement == null || collection == null || collection.Count == 0)
+            return;
+
+        var oldIndex = collection.IndexOf(oldElement);
+
+        if (oldIndex >= 0)
+            collection[oldIndex] = newElement;
+
+        FilteredViewCollection.Refresh();
+    }
+
+    public void Remove(T item)
+    {
+        if (item == null)
+            return;
+
+        GetSourceCollection().Remove(item);
+        FilteredViewCollection.Refresh();
+    }
+
+    public void Clear()
+    {
+        GetSourceCollection().Clear();
+        FilteredViewCollection.Refresh();
+    }
+
+    public void Add(T item)
+    {
+        if (item == null)
+            return;
+
+        AddInternal(item, GetSourceCollection());
+        FilteredViewCollection.Refresh();
+    }
+
+    private static void AddInternal(T item, IList<T> collection) =>
+        collection.Add(item);
+
+    public void AddRange(IEnumerable<T> items)
+    {
+        var collection = GetSourceCollection();
+
+        if (collection == null)
+            return;
+
+        foreach (var item in items)
+            AddInternal(item, collection);
+
+        FilteredViewCollection.Refresh();
+    }
+
+    public void Set(IEnumerable<T> newCollection)
+    {
+        FilteredViewCollection = CollectionViewSource.GetDefaultView(newCollection.ToList());
+        FilteredViewCollection.Filter = Filter;
+        SearchCriteria = string.Empty;
+        Category = Category.All;
+    }
+
+    private bool Filter(object item) =>
+        item is T member &&
+        (member.Category == Category || Category == Category.All) &&
+        (SearchCriteria.IsNull() || member.ResourceName.ToLower().Contains(SearchCriteria.ToLower()));
+
+    public IList<T> CloneCollection() =>
+        GetSourceCollection()
+            .Select(member => (T)member.Clone())
+            .ToList();
+
+    public IEnumerable<TR> GetCollectionOfExplicitType<TR>() where TR : class =>
+        GetSourceCollection().Select(member => member as TR);
+
+    public IList<T> GetSourceCollection() =>
+        FilteredViewCollection.SourceCollection as IList<T>;
 }

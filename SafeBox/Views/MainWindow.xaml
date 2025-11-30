@@ -9,14 +9,14 @@
         xmlns:vm="clr-namespace:SafeBox.ViewModels"
         xmlns:lb="clr-namespace:SafeBox.Behaviors"
         xmlns:gong="urn:gong-wpf-dragdrop"
+        d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel}"
         mc:Ignorable="d"
-        d:DataContext="{x:Null}"
         x:Name="Window"
         Title="SafeBox"
         Height="450" Width="800"
         Icon="/SafeIcon.ico"
         WindowStartupLocation="CenterScreen"
-        MinHeight="320" MinWidth="620">
+        MinHeight="400" MinWidth="620" Background="#191925">
     <Window.DataContext>
         <vm:MainWindowViewModel />
     </Window.DataContext>
@@ -27,34 +27,50 @@
         <conv:StringToBooleanConverter x:Key="StringToBooleanConverter" />
         <conv:NullToBooleanConverter x:Key="NullToBooleanConverter" />
         <conv:ZeroCountToVisibilityConverter x:Key="ZeroCountToVisibilityConverter" />
-        <lb:ListBoxAddingScrollBehavior x:Key="ListBoxAddingScrollBehavior" />
-    </Window.Resources>
+        <conv:CategoryToBooleanConverter x:Key="CategoryToBooleanConverter" />
+        <conv:CollectionToSideCategoryCountConverter x:Key="CollectionToSideCategoryCountConverter" />
 
-    <Window.Background>
-        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-            <GradientStop Color="#FF4A278A"/>
-            <GradientStop Color="#FF241048" Offset="1"/>
-        </LinearGradientBrush>
-    </Window.Background>
+            <Storyboard x:Key="ExpandPanelStoryboard">
+            <DoubleAnimation
+                Storyboard.TargetName="sidePanelBorder"
+                Storyboard.TargetProperty="Width"
+                To="150"
+                Duration="0:0:0.2" />
+
+            <ThicknessAnimation
+                Storyboard.TargetName="AccountsBox"
+                Storyboard.TargetProperty="Margin"
+                To="150 0 0 0"
+                Duration="0:0:0.2" />
+        </Storyboard>
+
+        <Storyboard x:Key="CollapsePanelStoryboard">
+            <DoubleAnimation
+                Storyboard.TargetName="sidePanelBorder"
+                Storyboard.TargetProperty="Width"
+                To="55"
+                Duration="0:0:0.2" />
+
+            <ThicknessAnimation
+                Storyboard.TargetName="AccountsBox"
+                Storyboard.TargetProperty="Margin"
+                To="55 0 0 0"
+                Duration="0:0:0.2" />
+        </Storyboard>
+    </Window.Resources>
 
     <Grid>
         <ListBox
-            x:Name="accountsBox"
-            Margin="62 7 7 7"
-            Background="#7F150025"
+            x:Name="AccountsBox"
+            Margin="55 0 0 0"
+            Background="{x:Null}"
+            BorderThickness="0"
             gong:DragDrop.IsDragSource="True"
             gong:DragDrop.IsDropTarget="True"
             gong:DragDrop.UseDefaultDragAdorner="True"
             gong:DragDrop.DropHandler="{Binding}"
-            ItemsSource="{Binding SynchronizationService.ViewCollection, UpdateSourceTrigger=PropertyChanged}"
+            ItemsSource="{Binding SynchronizationService.FilteredViewCollection, UpdateSourceTrigger=PropertyChanged}"
             SelectedItem="{Binding SynchronizationService.SelectedItem, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
-
-            <ListBox.RenderTransform>
-                <TransformGroup>
-                    <TranslateTransform x:Name="accountsBoxTransform" />
-                </TransformGroup>
-            </ListBox.RenderTransform>
-
             <b:Interaction.Behaviors>
                 <lb:ListBoxAddingScrollBehavior IsScrollingToEndEnabled="True" />
             </b:Interaction.Behaviors>
@@ -64,7 +80,7 @@
                     FocusVisualStyle="{x:Null}"
                     Background="#FF4A278A">
                     <MenuItem
-                        IsEnabled="{Binding SynchronizationService.SelectedItem.ResourceName, Converter={StaticResource ResourceUrlToBooleanConverter}}"
+                        IsEnabled="{Binding SynchronizationService.SelectedItem.ResourceName, Converter={StaticResource ResourceUrlToBooleanConverter}, FallbackValue=false}"
                         FocusVisualStyle="{x:Null}"
                         Header="Open"
                         Foreground="White">
@@ -96,7 +112,7 @@
                         FocusVisualStyle="{x:Null}"
                         Header="Edit"
                         Foreground="White"
-                        IsEnabled="{Binding SynchronizationService.SelectedItem, Converter={StaticResource NullToBooleanConverter}}">
+                        IsEnabled="{Binding SynchronizationService.SelectedItem, Converter={StaticResource NullToBooleanConverter}, FallbackValue=false}">
                         <MenuItem.Icon>
                             <Image Source="/Resources/EditKey.png" />
                         </MenuItem.Icon>
@@ -111,7 +127,7 @@
                         FocusVisualStyle="{x:Null}"
                         Header="Remove"
                         Foreground="White"
-                        IsEnabled="{Binding SynchronizationService.SelectedItem, Converter={StaticResource NullToBooleanConverter}}">
+                        IsEnabled="{Binding SynchronizationService.SelectedItem, Converter={StaticResource NullToBooleanConverter}, FallbackValue=false}">
                         <MenuItem.Icon>
                             <Image Source="/Resources/RemoveKey.png" />
                         </MenuItem.Icon>
@@ -128,12 +144,21 @@
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem" BasedOn="{StaticResource MaterialDesignListBoxItem}">
                     <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="#3d4058"/>
+                        </Trigger>
+
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#282A3A"/>
+                        </Trigger>
+                    </Style.Triggers>
                 </Style>
             </ListBox.ItemContainerStyle>
 
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <VirtualizingStackPanel x:Name="itemsPanel" Orientation="Vertical">
+                    <StackPanel Orientation="Vertical">
                         <StackPanel Orientation="Horizontal">
                             <Image
                                 Source="{Binding ServiceType, Converter={StaticResource ServiceTypeToImageConverter}}"
@@ -195,13 +220,12 @@
                                 Margin="34 0 0 0"/>
 
                             <TextBlock
-                                x:Name="pwdBlock"
                                 Foreground="White"
                                 Margin="34,0,0,0"
                                 Visibility="{Binding IsPasswordVisible, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BooleanToVisibilityConverter}}"
                                 Opacity="0">
                                 <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
+                                    <Style TargetType="{x:Type TextBlock}">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsPasswordVisible, UpdateSourceTrigger=PropertyChanged}" Value="True">
                                                 <DataTrigger.EnterActions>
@@ -210,15 +234,14 @@
                                                             <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="8" Duration="0:0:1" />
                                                             <DoubleAnimation Storyboard.TargetProperty="Opacity" From="8" To="-2" Duration="0:0:3.5" BeginTime="0:0:0.2" />
                                                             <DoubleAnimation
-                                                                Storyboard.Target="{Binding ElementName=itemsPanel}"
+                                                                Storyboard.Target="{Binding RelativeSource={RelativeSource AncestorType={x:Type StackPanel}}}"
                                                                 Storyboard.TargetProperty="Height"
                                                                 From="0"
                                                                 To="25"
                                                                 Duration="0:0:0.1">
                                                             </DoubleAnimation>
-
                                                             <DoubleAnimation
-                                                                Storyboard.Target="{Binding ElementName=itemsPanel}"
+                                                                Storyboard.Target="{Binding RelativeSource={RelativeSource AncestorType={x:Type StackPanel}}}"
                                                                 Storyboard.TargetProperty="Height"
                                                                 From="25"
                                                                 To="0"
@@ -236,7 +259,7 @@
                                 </TextBlock.Style>
                             </TextBlock>
                         </StackPanel>
-                    </VirtualizingStackPanel>
+                    </StackPanel>
                     <DataTemplate.Triggers>
                         <EventTrigger
                             SourceName="showPwdBtn"
@@ -248,7 +271,7 @@
                                         Storyboard.TargetProperty="Opacity"
                                         From="-15"
                                         To="1"
-                                        Duration="0:0:3"/>
+                                        Duration="0:0:3" />
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
@@ -277,9 +300,9 @@
                         <Setter.Value>
                             <ControlTemplate TargetType="{x:Type ListBox}">
                                 <Grid>
-                                    <Border x:Name="Border" BorderThickness="2" CornerRadius="0" BorderBrush="#195B99B0" Background="#33000000">
+                                    <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="0" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}">
                                         <ScrollViewer Margin="0" Focusable="false">
-                                            <StackPanel Margin="2" IsItemsHost="True" />
+                                            <VirtualizingStackPanel Margin="2" IsItemsHost="True" />
                                         </ScrollViewer>
                                     </Border>
 
@@ -289,12 +312,12 @@
 
                                         <TextBox
                                             x:Name="SearchBox"
-                                            Text="{Binding SynchronizationService.SearchCriteria, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Text="{Binding SynchronizationService.SearchCriteria, Delay=25, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                             Visibility="{Binding SynchronizationService.Count, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource ZeroCountToVisibilityConverter}}"
                                             TextWrapping="NoWrap"
-                                            VerticalContentAlignment="Center"
+                                            VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch"
                                             BorderThickness="0,0,0,0"
-                                            Padding="5,0,0,0"
+                                            Padding="5,0,0,0" Margin="0,0,25,15"
                                             md:TextFieldAssist.TextFieldCornerRadius="2"
                                             md:TextFieldAssist.UnderlineBrush="Transparent"
                                             md:TextFieldAssist.HasLeadingIcon="True"
@@ -302,15 +325,14 @@
                                             md:HintAssist.FloatingScale="0"
                                             md:HintAssist.Hint="Поиск..."
                                             md:TextFieldAssist.HasClearButton="True" 
-                                            Foreground="White" SelectionBrush="White"
-                                            SelectionTextBrush="#6600D5FF"
-                                            CaretBrush="White"
+                                            Foreground="White" Background="#FF3E3E4E" 
+                                            SelectionBrush="White" SelectionTextBrush="#6600D5FF"
+                                            BorderBrush="#337692AD" CaretBrush="White"
                                             RenderTransformOrigin="0.499,0.402"
-                                            Background="#FF2F4459" BorderBrush="#337692AD"
-                                            HorizontalContentAlignment="Stretch"
                                             Cursor="IBeam"
-                                            Width="100" Height="32" VerticalAlignment="Bottom"
-                                            Opacity="0.2" HorizontalAlignment="Right" Margin="0,0,25,15" />
+                                            Width="100" Height="32"
+                                            VerticalAlignment="Bottom" HorizontalAlignment="Right"
+                                            Opacity="0.2" />
                                     </StackPanel>
 
                                     <b:Interaction.Behaviors>
@@ -397,174 +419,269 @@
             BorderBrush="#FF6635D6"
             BorderThickness="0 0 0 0">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="10" Direction="0" ShadowDepth="1"/>
+                <DropShadowEffect BlurRadius="10" Color="Black" Direction="0" ShadowDepth="1"/>
             </Border.Effect>
-            <StackPanel>
-                <StackPanel.Background>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="15"/>
+
+                    <RowDefinition Height="46" />
+                    <RowDefinition Height="46" />
+                    <RowDefinition Height="46" />
+                    <RowDefinition Height="46" />
+
+                    <RowDefinition Height="35*" />
+
+                    <RowDefinition Height="40" />
+                    <RowDefinition Height="40" />
+                    <RowDefinition Height="40" />
+
+                    <RowDefinition Height="15"/>
+                </Grid.RowDefinitions>
+
+                <Grid.Background>
                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                         <GradientStop Color="#F90B192C"/>
                         <GradientStop Color="#F9191919" Offset="1"/>
                         <GradientStop Color="#F9331D2C" Offset="0.733"/>
                         <GradientStop Color="#F92A004E" Offset="0.333"/>
                     </LinearGradientBrush>
-                </StackPanel.Background>
-                <StackPanel.Triggers>
-                    <EventTrigger RoutedEvent="UIElement.MouseEnter">
-                        <BeginStoryboard>
-                            <Storyboard>
-                                <DoubleAnimation
-                                    Storyboard.TargetName="sidePanelBorder"
-                                    Storyboard.TargetProperty="Width"
-                                    To="150"
-                                    Duration="0:0:0.2" />
-                                
-                                <ThicknessAnimation
-                                    Storyboard.TargetName="accountsBox"
-                                    Storyboard.TargetProperty="Margin"
-                                    To="157 7 7 7"
-                                    Duration="0:0:0.2" />
-                            </Storyboard>
-                        </BeginStoryboard>
-                    </EventTrigger>
-                    <EventTrigger RoutedEvent="UIElement.MouseLeave">
-                        <BeginStoryboard>
-                            <Storyboard>
-                                <DoubleAnimation 
-                                    Storyboard.TargetName="sidePanelBorder"
-                                    Storyboard.TargetProperty="Width"
-                                    To="55"
-                                    Duration="0:0:0.2" />
-                                
-                                <ThicknessAnimation
-                                    Storyboard.TargetName="accountsBox"
-                                    Storyboard.TargetProperty="Margin"
-                                    To="62 7 7 7"
-                                    Duration="0:0:0.2" />
-                            </Storyboard>
-                        </BeginStoryboard>
-                    </EventTrigger>
-                </StackPanel.Triggers>
+                </Grid.Background>
 
-                <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
-                    <Button
-                        md:RippleAssist.IsCentered="True"
-                        FocusVisualStyle="{x:Null}"
-                        Foreground="#DDFFFFFF"
-                        Width="{Binding ElementName=sidePanelBorder, Path=ActualWidth}"
-                        HorizontalContentAlignment="Left"
-                        Padding="14,4,5,4">
-                        <Button.Style>
-                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignFlatButton}">
-                                <Setter Property="ContentTemplate">
-                                    <Setter.Value>
-                                        <DataTemplate>
-                                            <DockPanel>
-                                                <TextBlock Text="⇲" Width="30" Margin="0 0 15 0" FontSize="18" VerticalAlignment="Center" Foreground="#FFB169BD"/>
-                                                <TextBlock Text="IMPORT" FontSize="13" HorizontalAlignment="Stretch" VerticalAlignment="Center" FontWeight="Bold" />
-                                            </DockPanel>
-                                        </DataTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Button.Style>
-                        <b:Interaction.Triggers>
-                            <b:EventTrigger EventName="Click">
-                                <b:InvokeCommandAction Command="{Binding ShowImportCommand}" />
-                            </b:EventTrigger>
-                        </b:Interaction.Triggers>
-                    </Button>
-                </StackPanel>
+                <b:Interaction.Triggers>
+                    <b:EventTrigger EventName="MouseEnter">
+                        <b:InvokeCommandAction
+                            Command="{Binding ChangePanelStateCommand}"
+                            CommandParameter="True" />
 
-                <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
-                    <Button
-                        md:RippleAssist.IsCentered="True"
-                        FocusVisualStyle="{x:Null}"
-                        Foreground="#DDFFFFFF"
-                        Width="{Binding ElementName=sidePanelBorder, Path=ActualWidth}"
-                        HorizontalContentAlignment="Left"
-                        Padding="14,4,5,4">
-                        <Button.Style>
-                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignFlatButton}">
-                                <Setter Property="ContentTemplate">
-                                    <Setter.Value>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="⇱" Width="30" Margin="0 0 15 0" FontSize="18" Foreground="#FFA1B970" VerticalAlignment="Center"/>
-                                                <TextBlock Text="EXPORT" FontSize="13" VerticalAlignment="Center" FontWeight="Bold" />
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Button.Style>
-                        <b:Interaction.Triggers>
-                            <b:EventTrigger EventName="Click">
-                                <b:InvokeCommandAction Command="{Binding ShowExportCommand}" />
-                            </b:EventTrigger>
-                        </b:Interaction.Triggers>
-                    </Button>
-                </StackPanel>
+                        <b:ControlStoryboardAction
+                            Storyboard="{StaticResource CollapsePanelStoryboard}"
+                            ControlStoryboardOption="Stop" />
 
-                <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
-                    <Button
-                        md:RippleAssist.IsCentered="True"
-                        FocusVisualStyle="{x:Null}"
-                        Foreground="#DDFFFFFF"
-                        Width="{Binding ElementName=sidePanelBorder, Path=ActualWidth}"
-                        HorizontalContentAlignment="Left"
-                        Padding="14,4,5,4">
-                        <Button.Style>
-                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignFlatButton}">
-                                <Setter Property="ContentTemplate">
-                                    <Setter.Value>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="⚙" Width="30" Margin="0 0 15 0" FontSize="18" Foreground="#FF8FBBBF" VerticalAlignment="Center" />
-                                                <TextBlock Text="SETTINGS" FontSize="13" VerticalAlignment="Center" FontWeight="Bold" />
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Button.Style>
-                        <b:Interaction.Triggers>
-                            <b:EventTrigger EventName="Click">
-                                <b:InvokeCommandAction Command="{Binding ShowSettingsCommand}" />
-                            </b:EventTrigger>
-                        </b:Interaction.Triggers>
-                    </Button>
-                </StackPanel>
+                        <b:ControlStoryboardAction
+                            Storyboard="{StaticResource ExpandPanelStoryboard}"
+                            ControlStoryboardOption="Play" />
+                    </b:EventTrigger>
 
-                <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
-                    <Button
-                        md:RippleAssist.IsCentered="True"
-                        FocusVisualStyle="{x:Null}"
-                        Padding="14,4,5,4"
-                        Foreground="#DDFFFFFF"
-                        Width="{Binding ElementName=sidePanelBorder, Path=ActualWidth}"
-                        HorizontalContentAlignment="Left">
-                        <Button.Style>
-                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignFlatButton}">
-                                <Setter Property="ContentTemplate">
-                                    <Setter.Value>
-                                        <DataTemplate>
-                                            <DockPanel>
-                                                <TextBlock Text="❌" Width="30" Margin="0 0 15 0" FontSize="18" VerticalAlignment="Center" Foreground="#FFF2FFA4"/>
-                                                <TextBlock Text="EXIT" FontSize="13" HorizontalAlignment="Stretch" VerticalAlignment="Center" FontWeight="Bold" />
-                                            </DockPanel>
-                                        </DataTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Button.Style>
-                        <b:Interaction.Triggers>
-                            <b:EventTrigger EventName="Click">
-                                <b:CallMethodAction TargetObject="{Binding ElementName=Window}" MethodName="Close" />
-                            </b:EventTrigger>
-                        </b:Interaction.Triggers>
-                    </Button>
-                </StackPanel>
-            </StackPanel>
+                    <b:EventTrigger EventName="MouseLeave">
+                        <b:InvokeCommandAction
+                            Command="{Binding ChangePanelStateCommand}"
+                            CommandParameter="False" />
+
+                        <b:ControlStoryboardAction
+                            Storyboard="{StaticResource ExpandPanelStoryboard}"
+                            ControlStoryboardOption="Stop" />
+
+                        <b:ControlStoryboardAction
+                            Storyboard="{StaticResource CollapsePanelStoryboard}"
+                            ControlStoryboardOption="Play" />
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+
+                <Button
+                    md:RippleAssist.IsCentered="True"
+                    FocusVisualStyle="{x:Null}"
+                    Foreground="#DDFFFFFF"
+                    HorizontalContentAlignment="Left"
+                    Padding="0"
+                    Grid.Row="6"
+                    Margin="0"
+                    Command="{Binding ShowImportCommand}">>
+                    <Button.Style>
+                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignFlatButton}">
+                            <Setter Property="ContentTemplate">
+                                <Setter.Value>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="55" />
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Text="⇲" FontFamily="General Sans" FontSize="18" Foreground="#FFB169BD" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                            <TextBlock
+                                                Text="Import"
+                                                FontFamily="General Sans" FontSize="12"
+                                                Grid.Column="1"
+                                                VerticalAlignment="Center" HorizontalAlignment="Left"
+                                                Margin="5,0,0,0" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <Button
+                    md:RippleAssist.IsCentered="True"
+                    FocusVisualStyle="{x:Null}"
+                    Foreground="#DDFFFFFF"
+                    HorizontalContentAlignment="Left"
+                    Padding="0"
+                    Grid.Row="7"
+                    Margin="0"
+                    Command="{Binding ShowExportCommand}">
+                    <Button.Style>
+                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignFlatButton}">
+                            <Setter Property="ContentTemplate">
+                                <Setter.Value>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="55" />
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Text="⇱" FontFamily="General Sans" FontSize="18" Foreground="#FFA1B970" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock
+                                                Text="Export"
+                                                FontFamily="General Sans" FontSize="12"
+                                                Grid.Column="1"
+                                                HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                Margin="5,0,0,0" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <RadioButton
+                    x:Name="SideRadioGeneral"
+                    Style="{StaticResource MaterialDesignPanelChip}"
+                    IsChecked="{Binding SynchronizationService.Category, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource CategoryToBooleanConverter}, ConverterParameter=0, FallbackValue=true}"
+                    FontSize="11"
+                    FontFamily="General Sans"
+                    md:RippleAssist.IsCentered="True"
+                    FocusVisualStyle="{x:Null}"
+                    Foreground="#DDFFFFFF"
+                    Grid.Row="1"
+                    Margin="10,0,10,0"
+                    HorizontalAlignment="Stretch"
+                    Command="{Binding ChangeCategoryCommand}"
+                    CommandParameter="0">
+                    <RadioButton.Content>
+                        <TextBlock />
+                    </RadioButton.Content>
+                    <b:Interaction.Behaviors>
+                        <lb:SideCategoryBehavior
+                            IsSideShown="{Binding IsSidePanelExpanded, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                            CategoryDisplayName="All"
+                            Category="All"
+                            SourceCollectionView="{Binding SynchronizationService.FilteredViewCollection, UpdateSourceTrigger=PropertyChanged}" />
+                    </b:Interaction.Behaviors>
+                </RadioButton>
+
+                <RadioButton
+                    x:Name="SideRadioPersonal"
+                    Style="{StaticResource MaterialDesignPanelChip}"
+                    IsChecked="{Binding SynchronizationService.Category, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource CategoryToBooleanConverter}, ConverterParameter=1, FallbackValue=false}"
+                    FontSize="11"
+                    FontFamily="General Sans"
+                    md:RippleAssist.IsCentered="True"
+                    FocusVisualStyle="{x:Null}"
+                    Foreground="#DDFFFFFF"
+                    Grid.Row="2"
+                    Margin="10,0,10,0"
+                    HorizontalAlignment="Stretch">
+                    <RadioButton.Content>
+                        <TextBlock />
+                    </RadioButton.Content>
+                    <b:Interaction.Behaviors>
+                        <lb:SideCategoryBehavior
+                            IsSideShown="{Binding IsSidePanelExpanded, UpdateSourceTrigger=PropertyChanged}"
+                            CategoryDisplayName="Personal"
+                            Category="Personal"
+                            SourceCollectionView="{Binding SynchronizationService.FilteredViewCollection, UpdateSourceTrigger=PropertyChanged}" />
+                    </b:Interaction.Behaviors>
+                </RadioButton>
+                
+                <RadioButton
+                    x:Name="SideRadioMessenger"
+                    Style="{StaticResource MaterialDesignPanelChip}"
+                    IsChecked="{Binding SynchronizationService.Category, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource CategoryToBooleanConverter}, ConverterParameter=2, FallbackValue=false}"
+                    FontSize="11"
+                    FontFamily="General Sans"
+                    md:RippleAssist.IsCentered="True"
+                    FocusVisualStyle="{x:Null}"
+                    Foreground="#DDFFFFFF"
+                    Grid.Row="3"
+                    Margin="10,0,10,0"
+                    HorizontalAlignment="Stretch">
+                    <RadioButton.Content>
+                        <TextBlock />
+                    </RadioButton.Content>
+                    <b:Interaction.Behaviors>
+                        <lb:SideCategoryBehavior
+                            IsSideShown="{Binding IsSidePanelExpanded, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                            CategoryDisplayName="Messenger"
+                            Category="Messengers"
+                            SourceCollectionView="{Binding SynchronizationService.FilteredViewCollection, UpdateSourceTrigger=PropertyChanged}" />
+                    </b:Interaction.Behaviors>
+                </RadioButton>
+
+                <RadioButton
+                    x:Name="SideRadioOther"
+                    Style="{StaticResource MaterialDesignPanelChip}"
+                    IsChecked="{Binding SynchronizationService.Category, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource CategoryToBooleanConverter}, ConverterParameter=3, FallbackValue=false}"
+                    FontSize="11"
+                    FontFamily="General Sans"
+                    md:RippleAssist.IsCentered="True"
+                    FocusVisualStyle="{x:Null}"
+                    Foreground="#DDFFFFFF"
+                    Grid.Row="4"
+                    Margin="10,0,10,0"
+                    HorizontalAlignment="Stretch">
+                    <RadioButton.Content>
+                        <TextBlock />
+                    </RadioButton.Content>
+                    <b:Interaction.Behaviors>
+                        <lb:SideCategoryBehavior
+                            IsSideShown="{Binding IsSidePanelExpanded, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                            CategoryDisplayName="Other"
+                            Category="Other"
+                            SourceCollectionView="{Binding SynchronizationService.FilteredViewCollection, UpdateSourceTrigger=PropertyChanged}" />
+                    </b:Interaction.Behaviors>
+                </RadioButton>
+
+                <Button
+                    md:RippleAssist.IsCentered="True"
+                    FocusVisualStyle="{x:Null}"
+                    Foreground="#DDFFFFFF"
+                    HorizontalContentAlignment="Left"
+                    Padding="0"
+                    Grid.Row="8"
+                    Margin="0"
+                    Command="{Binding ShowSettingsCommand}">
+                    <Button.Style>
+                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignFlatButton}">
+                            <Setter Property="ContentTemplate">
+                                <Setter.Value>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="55" />
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Text="⚙" FontFamily="General Sans" FontSize="18" Foreground="#FF8FBBBF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                            <TextBlock
+                                                Text="Settings"
+                                                FontFamily="General Sans" FontSize="12"
+                                                VerticalAlignment="Center" HorizontalAlignment="Left"
+                                                Grid.Column="1"
+                                                Margin="5,0,0,0" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Grid>
         </Border>
     </Grid>
 </Window>

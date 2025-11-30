@@ -1,9 +1,8 @@
-﻿using SafeBox.Interfaces;
+﻿using SafeBox.Models;
 
-namespace SafeBox.EventArguments
+namespace SafeBox.EventArguments;
+
+public class CreatingMemberFinishedEventArgs(StorageMember member)
 {
-    public class CreatingMemberFinishedEventArgs(IStorageMember member)
-    {
-        public IStorageMember StorageMember { get; } = member;
-    }
+    public StorageMember StorageMember { get; } = member;
 }

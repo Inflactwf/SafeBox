@@ -1,14 +1,13 @@
-﻿namespace SafeBox.Enums
+﻿namespace SafeBox.Enums;
+
+public enum ServiceType
 {
-    public enum ServiceType
-    {
-        Other,
-        WebSite,
-        Application,
-        Steam,
-        Origin,
-        Uplay,
-        BattleNet,
-        Epic
-    }
+    Other,
+    WebSite,
+    Application,
+    Steam,
+    Origin,
+    Uplay,
+    BattleNet,
+    Epic
 }
