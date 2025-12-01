@@ -6,26 +6,26 @@ namespace SafeBox.Handlers;
 
 public static class ConfigurationHandler
 {
-    private static readonly Configuration appConfiguration;
+    private static readonly Configuration AppConfiguration;
 
     static ConfigurationHandler()
     {
-        appConfiguration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+        AppConfiguration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
     }
 
     public static void AddOrUpdate(string key, string value)
     {
         try
         {
-            var settings = appConfiguration.AppSettings.Settings;
+            var settings = AppConfiguration.AppSettings.Settings;
 
             if (settings[key] == null)
                 settings.Add(key, value);
             else
                 settings[key].Value = value;
 
-            appConfiguration.Save(ConfigurationSaveMode.Modified);
-            ConfigurationManager.RefreshSection(appConfiguration.AppSettings.SectionInformation.Name);
+            AppConfiguration.Save(ConfigurationSaveMode.Modified);
+            ConfigurationManager.RefreshSection(AppConfiguration.AppSettings.SectionInformation.Name);
         }
         catch (ConfigurationErrorsException)
         {
@@ -38,7 +38,7 @@ public static class ConfigurationHandler
     public static void UpdateStorageFullPath(string value) => AddOrUpdate(Constants.StoragePathParameterName, value);
 
     public static string GetValue(string key) =>
-        appConfiguration.AppSettings.Settings[key]?.Value;
+        AppConfiguration.AppSettings.Settings[key]?.Value;
 
     public static string SecureKey => GetValue(Constants.SecureKeyParameterName);
 

@@ -181,10 +181,10 @@
     <Compile Include="ViewModels\AuthenticationViewModel.cs" />
     <Compile Include="ViewModels\EditMemberViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
-    <Compile Include="Security\DPAPICryptographer.cs" />
+    <Compile Include="Security\DpapiCryptographer.cs" />
     <Compile Include="Security\SecurityHelper.cs" />
     <Compile Include="Security\AesCryptographer.cs" />
-    <Compile Include="Security\SHACryptographer.cs" />
+    <Compile Include="Security\ShaCryptographer.cs" />
     <Compile Include="Services\WindowService.cs" />
     <Compile Include="ViewModels\CreateMemberViewModel.cs" />
     <Compile Include="ViewModels\ImportViewModel.cs" />

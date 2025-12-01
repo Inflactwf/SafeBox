@@ -69,7 +69,7 @@ public class ExportViewModel : ViewModelBase
 
         try
         {
-            using var passwordKey = SecurityHelper.ToSecureString(SHACryptographer.Encrypt(Password));
+            using var passwordKey = SecurityHelper.ToSecureString(ShaCryptographer.Encrypt(Password));
             var encryptedData = AesCryptographer.Encrypt(_collection.JsonSerializeObject(), passwordKey);
 
             if (encryptedData.IsNull())

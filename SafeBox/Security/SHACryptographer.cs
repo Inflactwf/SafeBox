@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 
 namespace SafeBox.Security;
 
-internal static class SHACryptographer
+internal static class ShaCryptographer
 {
     internal static string Encrypt(string data)
     {

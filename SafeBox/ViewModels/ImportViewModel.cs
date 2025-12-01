@@ -47,14 +47,18 @@ public class ImportViewModel : ViewModelBase
     {
         try
         {
-            var passwordShaHash = SHACryptographer.Encrypt(Password);
+            var passwordShaHash = ShaCryptographer.Encrypt(Password);
             using var securePassword = SecurityHelper.ToSecureString(passwordShaHash);
             var encryptedData = fileHandler.Read() ?? string.Empty;
             var decryptedData = AesCryptographer.Decrypt(encryptedData, securePassword);
 
             if (decryptedData.IsNull())
             {
-                ImportFinished?.Invoke(new(false, "Decrypted data is empty or has been corrupted, the import process is stopped.", fileHandler.FileName, null, IsMergeRequested));
+                ImportFinished?.Invoke(new(false,
+                    "Decrypted data has been corrupted or an incorrect password have been entered, the import process is stopped.",
+                    fileHandler.FileName,
+                    null,
+                    IsMergeRequested));
                 return;
             }
 

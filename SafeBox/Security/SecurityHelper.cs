@@ -16,7 +16,7 @@ internal static class SecurityHelper
         if (encryptedKey.IsNull())
             return null;
 
-        var secureKey = DPAPICryptographer.Decrypt(encryptedKey);
+        var secureKey = DpapiCryptographer.Decrypt(encryptedKey);
 
         return secureKey.IsNull()
             ? null

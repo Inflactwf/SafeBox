@@ -54,7 +54,7 @@ internal class AesCryptographer
     internal static string Encrypt(string data, SecureString key)
     {
         if (data.IsNull() || key.IsNull())
-            return default;
+            return null;
 
         var iv = new byte[16];
         using var rng = RandomNumberGenerator.Create();

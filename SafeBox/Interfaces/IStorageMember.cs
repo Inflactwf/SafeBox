@@ -6,18 +6,18 @@ namespace SafeBox.Interfaces;
 
 public interface IStorageMember : IComparable<IStorageMember>
 {
-    string ResourceName { get; }
-    ServiceType ServiceType { get; }
-    string Description { get; }
-    string Login { get; }
-    string PasswordHash { get; }
-    Category Category { get; }
+    //string ResourceName { get; }
+    //ServiceType ServiceType { get; }
+    //string Description { get; }
+    //string Login { get; }
+    //string PasswordHash { get; }
+    //Category Category { get; }
 
-    [JsonIgnore]
-    bool IsPasswordVisible { get; set; }
+    //[JsonIgnore]
+    //bool IsPasswordVisible { get; set; }
 
-    [JsonIgnore]
-    string DisplayInsecurePassword { get; set; }
+    //[JsonIgnore]
+    //string DisplayInsecurePassword { get; set; }
 
-    IStorageMember Clone();
+    //IStorageMember Clone();
 }

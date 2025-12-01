@@ -29,7 +29,7 @@ public static class SecureStringExtensions
     /// <exception cref="OutOfMemoryException">There is insufficient memory available.</exception>
     /// <exception cref="EncoderFallbackException">An encoding fallback occurred (see Character Encoding in the .NET Framework for complete explanation) and <see cref="System.Text.Encoding.EncoderFallback"/> is set to <see cref="System.Text.EncoderExceptionFallback"/> in <paramref name="encoding"/>.</exception>
     /// <returns>An array of hashed bytes. If <paramref name="secureString"/> is empty, returns an empty array.</returns>
-    public unsafe static byte[] GetHashBytes(this SecureString secureString, HashAlgorithm hashAlgorithm)
+    public static unsafe byte[] GetHashBytes(this SecureString secureString, HashAlgorithm hashAlgorithm)
     {
         if (secureString == null || hashAlgorithm == null)
             return [];
@@ -58,7 +58,7 @@ public static class SecureStringExtensions
             // Calculate the maximum number of bytes that may be needed to
             // represent the same string in the specified encoding instead
             // of UTF-16.
-            int maxEncodedBytesCount = Encoding.UTF8.GetMaxByteCount(secureString.Length);
+            var maxEncodedBytesCount = Encoding.UTF8.GetMaxByteCount(secureString.Length);
 
             // Allocate memory large enough to store the maximum number
             // of encoded bytes.
@@ -113,7 +113,7 @@ public static class SecureStringExtensions
             if (encodedBytes != null)
             {
                 // Zero out the managed bytes
-                for (int i = 0; i < encodedBytes.Length; i++)
+                for (var i = 0; i < encodedBytes.Length; i++)
                     encodedBytes[i] = 0;
 
                 // Release the GC pin on the managed bytes

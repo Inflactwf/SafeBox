@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 
 namespace SafeBox.Security;
 
-internal static class DPAPICryptographer
+internal static class DpapiCryptographer
 {
     private static readonly byte[] Entropy = [20];
 
@@ -14,7 +14,10 @@ internal static class DPAPICryptographer
     {
         try
         {
-            var encryptedData = ProtectedData.Protect(SecurityHelper.SecureStringToString(secureString).GetUtf8Bytes(), Entropy, DataProtectionScope.LocalMachine);
+            var encryptedData = ProtectedData.Protect(
+                SecurityHelper.SecureStringToString(secureString).GetUtf8Bytes(),
+                Entropy,
+                DataProtectionScope.LocalMachine);
                 
             return Convert.ToBase64String(encryptedData);
         }
@@ -29,7 +32,10 @@ internal static class DPAPICryptographer
     {
         try
         {
-            return SecurityHelper.ToSecureString(ProtectedData.Unprotect(Convert.FromBase64String(data), Entropy, DataProtectionScope.LocalMachine));
+            return SecurityHelper.ToSecureString(
+                ProtectedData.Unprotect(Convert.FromBase64String(data),
+                    Entropy,
+                    DataProtectionScope.LocalMachine));
         }
         catch (Exception ex)
         {

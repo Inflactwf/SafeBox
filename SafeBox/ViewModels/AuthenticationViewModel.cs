@@ -12,16 +12,15 @@ public class AuthenticationViewModel : ViewModelBase, IDisposable
 {
     #region Private Fields
 
-    private readonly IdentityService identityService;
-
+    private readonly IdentityService _identityService;
     private SecureString _password;
     private bool _isDisposed;
-
-    public SecureString Password { get => _password; set => Set(ref _password, value); }
 
     #endregion
 
     #region Public Properties
+
+    public SecureString Password { get => _password; set => Set(ref _password, value); }
 
     public bool IsAuthenticated { get; private set; }
 
@@ -32,7 +31,7 @@ public class AuthenticationViewModel : ViewModelBase, IDisposable
     public AuthenticationViewModel() { }
 
     public AuthenticationViewModel(IdentityService identityService) =>
-        this.identityService = identityService;
+        _identityService = identityService;
 
     #region Commands
 
@@ -42,11 +41,11 @@ public class AuthenticationViewModel : ViewModelBase, IDisposable
 
     private void Validate()
     {
-        var shaHash = SHACryptographer.Encrypt(Password);
+        var shaHash = ShaCryptographer.Encrypt(Password);
         using var key = SecurityHelper.ToSecureString(shaHash);
-        var encryptedKey = DPAPICryptographer.Encrypt(key);
+        var encryptedKey = DpapiCryptographer.Encrypt(key);
 
-        if (identityService.IsKeyValid(key))
+        if (_identityService.IsKeyValid(key))
         {
             UpdateKey(encryptedKey);
             return;
@@ -73,7 +72,7 @@ public class AuthenticationViewModel : ViewModelBase, IDisposable
         {
             case MessageBoxResult.No:
             {
-                identityService.ResetIdentity();
+                _identityService.ResetIdentity();
                 UpdateKey(encryptedKey);
                 break;
             }
