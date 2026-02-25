@@ -7,6 +7,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:lb="clr-namespace:SafeBox.Behaviors"
         xmlns:conv="clr-namespace:SafeBox.Converters"
+        xmlns:models="clr-namespace:SafeBox.Models"
         xmlns:vm="clr-namespace:SafeBox.ViewModels"
         xmlns:gong="urn:gong-wpf-dragdrop"
         d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel}"
@@ -30,9 +31,9 @@
         <conv:CategoryToBooleanConverter x:Key="CategoryToBooleanConverter" />
         <conv:CollectionToSideCategoryCountConverter x:Key="CollectionToSideCategoryCountConverter" />
 
-            <Storyboard x:Key="ExpandPanelStoryboard">
+        <Storyboard x:Key="ExpandPanelStoryboard">
             <DoubleAnimation
-                Storyboard.TargetName="sidePanelBorder"
+                Storyboard.TargetName="SidePanelBorder"
                 Storyboard.TargetProperty="Width"
                 To="150"
                 Duration="0:0:0.2" />
@@ -46,7 +47,7 @@
 
         <Storyboard x:Key="CollapsePanelStoryboard">
             <DoubleAnimation
-                Storyboard.TargetName="sidePanelBorder"
+                Storyboard.TargetName="SidePanelBorder"
                 Storyboard.TargetProperty="Width"
                 To="55"
                 Duration="0:0:0.2" />
@@ -159,14 +160,20 @@
             </ListBox.ItemContainerStyle>
 
             <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Vertical">
+                <DataTemplate DataType="{x:Type models:StorageMember}">
+                    <StackPanel x:Name="BackgroundPanel" Orientation="Vertical">
+                        <StackPanel.Background>
+                            <SolidColorBrush Color="Transparent"/>
+                        </StackPanel.Background>
+
                         <StackPanel Orientation="Horizontal">
+
                             <Image
                                 Source="{Binding ServiceType, Converter={StaticResource ServiceTypeToImageConverter}}"
                                 Width="24" Height="24" Margin="0,0,10,0" />
 
                             <TextBlock
+                                x:Name="ResourceNameTextBlock"
                                 Text="{Binding ResourceName}"
                                 Foreground="White"
                                 FontSize="17" />
@@ -205,6 +212,20 @@
                                     </b:EventTrigger>
                                 </b:Interaction.Triggers>
                             </Button>
+
+                            <StackPanel.Triggers>
+                                <EventTrigger RoutedEvent="Button.Click" SourceName="copyPwdBtn">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="ResourceNameTextBlock"
+                                                            Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)"
+                                                            To="#1E704A"
+                                                            Duration="0:0:0.2"
+                                                            AutoReverse="True"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </StackPanel.Triggers>
                         </StackPanel>
                         <StackPanel Orientation="Vertical" Margin="0,5,0,0">
                             <TextBlock
@@ -236,14 +257,14 @@
                                                             <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="8" Duration="0:0:1" />
                                                             <DoubleAnimation Storyboard.TargetProperty="Opacity" From="8" To="-2" Duration="0:0:3.5" BeginTime="0:0:0.2" />
                                                             <DoubleAnimation
-                                                                Storyboard.Target="{Binding RelativeSource={RelativeSource AncestorType={x:Type StackPanel}}}"
+                                                                Storyboard.Target="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type StackPanel}}}"
                                                                 Storyboard.TargetProperty="Height"
                                                                 From="0"
                                                                 To="25"
                                                                 Duration="0:0:0.1">
                                                             </DoubleAnimation>
                                                             <DoubleAnimation
-                                                                Storyboard.Target="{Binding RelativeSource={RelativeSource AncestorType={x:Type StackPanel}}}"
+                                                                Storyboard.Target="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type StackPanel}}}"
                                                                 Storyboard.TargetProperty="Height"
                                                                 From="25"
                                                                 To="0"
@@ -288,7 +309,7 @@
                                         Storyboard.TargetProperty="Opacity"
                                         From="1"
                                         To="0.2"
-                                        Duration="0:0:0.3"
+                                        Duration="0:0:0.2"
                                         AutoReverse="True"/>
                                 </Storyboard>
                             </BeginStoryboard>
@@ -304,7 +325,7 @@
                                 <Grid>
                                     <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="0" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}">
                                         <ScrollViewer Margin="0" Focusable="false">
-                                            <VirtualizingStackPanel Margin="2" IsItemsHost="True" />
+                                            <VirtualizingStackPanel x:Name="VirtualizingPanel" Margin="2" IsItemsHost="True" />
                                         </ScrollViewer>
                                     </Border>
 
@@ -315,7 +336,7 @@
                                         <TextBox
                                             x:Name="SearchBox"
                                             Text="{Binding SynchronizationService.SearchCriteria, Delay=25, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                            Visibility="{Binding SynchronizationService.Count, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource ZeroCountToVisibilityConverter}}"
+                                            Visibility="{Binding SynchronizationService.HasElements, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BooleanToVisibilityConverter}}"
                                             TextWrapping="NoWrap"
                                             VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch"
                                             BorderThickness="0,0,0,0"
@@ -326,7 +347,8 @@
                                             md:TextFieldAssist.LeadingIcon="Search"
                                             md:HintAssist.FloatingScale="0"
                                             md:HintAssist.Hint="Поиск..."
-                                            md:TextFieldAssist.HasClearButton="True" 
+                                            md:TextFieldAssist.HasClearButton="True"
+                                            md:TextFieldAssist.TextBoxViewMargin="0 0 50 0"
                                             Foreground="White" Background="#FF3E3E4E" 
                                             SelectionBrush="White" SelectionTextBrush="#6600D5FF"
                                             BorderBrush="#337692AD" CaretBrush="White"
@@ -414,8 +436,9 @@
                 </Style>
             </ListBox.Style>
         </ListBox>
+
         <Border
-            x:Name="sidePanelBorder"
+            x:Name="SidePanelBorder"
             HorizontalAlignment="Left"
             Width="55"
             BorderBrush="#FF6635D6"
@@ -489,6 +512,7 @@
                     Padding="0"
                     Grid.Row="6"
                     Margin="0"
+                    md:RippleAssist.IsDisabled="True"
                     Command="{Binding ShowImportCommand}">>
                     <Button.Style>
                         <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignFlatButton}">
@@ -524,6 +548,7 @@
                     Padding="0"
                     Grid.Row="7"
                     Margin="0"
+                    md:RippleAssist.IsDisabled="True"
                     Command="{Binding ShowExportCommand}">
                     <Button.Style>
                         <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignFlatButton}">
@@ -600,7 +625,7 @@
                             SourceCollectionView="{Binding SynchronizationService.FilteredViewCollection, UpdateSourceTrigger=PropertyChanged}" />
                     </b:Interaction.Behaviors>
                 </RadioButton>
-                
+
                 <RadioButton
                     x:Name="SideRadioMessenger"
                     Style="{StaticResource MaterialDesignPanelChip}"
@@ -657,6 +682,7 @@
                     Padding="0"
                     Grid.Row="8"
                     Margin="0"
+                    md:RippleAssist.IsDisabled="True"
                     Command="{Binding ShowSettingsCommand}">
                     <Button.Style>
                         <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignFlatButton}">

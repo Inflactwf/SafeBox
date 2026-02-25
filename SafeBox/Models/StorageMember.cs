@@ -8,36 +8,23 @@ namespace SafeBox.Models;
 public class StorageMember(string resourceName, ServiceType serviceType, Category category, string login, string passwordHash, string description = null)
     : ViewModelBase, IComparable<StorageMember>
 {
-    #region Private Fields
+    public string ResourceName { get; set => Set(ref field, value); } = resourceName;
 
-    private bool _isPasswordVisible;
-    private string _displayInsecurePassword;
-    private string _resourceName = resourceName;
-    private ServiceType _serviceType = serviceType;
-    private Category _category = category;
-    private string _login = login;
-    private string _passwordHash = passwordHash;
-    private string _description = description;
+    public ServiceType ServiceType { get; set => Set(ref field, value); } = serviceType;
 
-    #endregion
+    public Category Category { get; set => Set(ref field, value); } = category;
 
-    public string ResourceName { get => _resourceName; set => Set(ref _resourceName, value); }
+    public string Description { get; set => Set(ref field, value == string.Empty ? null : value); } = description;
 
-    public ServiceType ServiceType { get => _serviceType; set => Set(ref _serviceType, value); }
+    public string Login { get; set => Set(ref field, value); } = login;
 
-    public Category Category { get => _category; set => Set(ref _category, value); }
-
-    public string Description { get => _description; set => Set(ref _description, value == string.Empty ? null : value); }
-
-    public string Login { get => _login; set => Set(ref _login, value); }
-
-    public string PasswordHash { get => _passwordHash; set => Set(ref _passwordHash, value); }
+    public string PasswordHash { get; set => Set(ref field, value); } = passwordHash;
 
     [JsonIgnore]
-    public bool IsPasswordVisible { get => _isPasswordVisible; set => Set(ref _isPasswordVisible, value); }
+    public bool IsPasswordVisible { get; set => Set(ref field, value); }
 
     [JsonIgnore]
-    public string DisplayInsecurePassword { get => _displayInsecurePassword; set => Set(ref _displayInsecurePassword, value); }
+    public string DisplayInsecurePassword { get; set => Set(ref field, value); }
 
     public StorageMember() : this(null, ServiceType.Other, Category.All, null, null) { }
 
@@ -58,4 +45,7 @@ public class StorageMember(string resourceName, ServiceType serviceType, Categor
 
         return 1;
     }
+
+    public override string ToString() =>
+        $"[{ServiceType}] {ResourceName} - {Login}";
 }

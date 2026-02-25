@@ -14,11 +14,6 @@ public sealed class ViewSynchronizationService<T> : ViewModelBase
 {
     #region Private Fields
 
-    private string _searchCriteria = string.Empty;
-    private T _selectedItem;
-    private Category _category;
-    private ICollectionView _filteredViewCollection;
-
     public ViewSynchronizationService(IEnumerable<T> collection)
     {
         Set(collection);
@@ -32,37 +27,37 @@ public sealed class ViewSynchronizationService<T> : ViewModelBase
 
     public ICollectionView FilteredViewCollection
     {
-        get => _filteredViewCollection;
-        private set => Set(ref _filteredViewCollection, value);
+        get;
+        private set => Set(ref field, value);
     }
 
     public T SelectedItem
     {
-        get => _selectedItem;
-        set => Set(ref _selectedItem, value);
+        get;
+        set => Set(ref field, value);
     }
 
     public string SearchCriteria
     {
-        get => _searchCriteria;
+        get;
         set
         {
-            Set(ref _searchCriteria, value);
+            Set(ref field, value);
             FilteredViewCollection.Refresh();
         }
-    }
+    } = string.Empty;
 
     public Category Category
     {
-        get => _category;
+        get;
         set
         {
-            Set(ref _category, value);
+            Set(ref field, value);
             FilteredViewCollection.Refresh();
         }
     }
 
-    public bool HasElements => !FilteredViewCollection.IsEmpty;
+    public bool HasElements { get; set => Set(ref field, value); }
 
     #endregion
 
@@ -115,14 +110,17 @@ public sealed class ViewSynchronizationService<T> : ViewModelBase
         if (item == null)
             return;
 
-        GetSourceCollection().Remove(item);
+        var sourceCollection = GetSourceCollection();
+        sourceCollection.Remove(item);
         FilteredViewCollection.Refresh();
+        HasElements = sourceCollection.Count > 0;
     }
 
     public void Clear()
     {
         GetSourceCollection().Clear();
         FilteredViewCollection.Refresh();
+        HasElements = false;
     }
 
     public void Add(T item)
@@ -134,8 +132,11 @@ public sealed class ViewSynchronizationService<T> : ViewModelBase
         FilteredViewCollection.Refresh();
     }
 
-    private static void AddInternal(T item, IList<T> collection) =>
+    private void AddInternal(T item, IList<T> collection)
+    {
         collection.Add(item);
+        HasElements = collection.Count > 0;
+    }
 
     public void AddRange(IEnumerable<T> items)
     {
@@ -152,10 +153,12 @@ public sealed class ViewSynchronizationService<T> : ViewModelBase
 
     public void Set(IEnumerable<T> newCollection)
     {
-        FilteredViewCollection = CollectionViewSource.GetDefaultView(newCollection.ToList());
+        var collection = newCollection.ToList();
+        FilteredViewCollection = CollectionViewSource.GetDefaultView(collection);
         FilteredViewCollection.Filter = Filter;
         SearchCriteria = string.Empty;
         Category = Category.All;
+        HasElements = collection.Count > 0;
     }
 
     private bool Filter(object item) =>

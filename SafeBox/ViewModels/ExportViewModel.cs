@@ -3,12 +3,12 @@ using SafeBox.Extensions;
 using SafeBox.Handlers;
 using SafeBox.Infrastructure;
 using SafeBox.Interfaces;
+using SafeBox.Models;
 using SafeBox.Security;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
-using SafeBox.Models;
 
 namespace SafeBox.ViewModels;
 

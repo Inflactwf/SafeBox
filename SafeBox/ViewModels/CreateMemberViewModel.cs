@@ -9,7 +9,7 @@ public class CreateMemberViewModel : ViewModelBase
 {
     #region Binding Properties
 
-    public StorageMember Member { get; } = new(); // Finish this when we got a different credential types
+    public StorageMember Member { get; } = new(); //TODO: Finish this when we got a different credential types
 
     #endregion
 
